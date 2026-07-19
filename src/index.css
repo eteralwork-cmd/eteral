@@ -17,7 +17,6 @@
     background-color: rgba(245, 163, 160, 0.25);
   }
 }
-
 @layer utilities {
   .text-gradient {
     background: linear-gradient(120deg, #f5a3a0 0%, #9cc4f0 100%);

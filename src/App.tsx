@@ -51,6 +51,16 @@ function useReveal<T extends HTMLElement>() {
   return ref;
 }
 
+/* Triggers a same-origin file download without navigating away */
+function triggerDownload(url: string, filename?: string) {
+  const link = document.createElement('a');
+  link.href = url;
+  if (filename) link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
 /* ------------------------------------------------------------------ */
 /*  Logo mark — abstract interlocking "e"                             */
 /* ------------------------------------------------------------------ */
@@ -95,10 +105,10 @@ function Logo({ onNav }: { onNav: (id: string) => void }) {
       <LogoMark className="h-8 w-8 transition-transform duration-500 group-hover:rotate-[8deg]" />
       <div className="flex flex-col items-start leading-none">
         <span className="text-[1.15rem] font-medium tracking-tight text-ink lowercase">
-          etral
+          eteral
         </span>
         <span className="text-[0.5rem] font-medium tracking-widest2 text-slatey uppercase mt-0.5">
-          Digital Products
+          Digital Products and Tools
         </span>
       </div>
     </button>
@@ -298,15 +308,13 @@ function Hero({ onNav }: { onNav: (id: string) => void }) {
         </div>
 
         <h1 className="mt-8 text-4xl font-semibold leading-[1.1] tracking-tight text-ink sm:text-5xl lg:text-6xl">
-          Tools to help you study,
+          Tools to help you get Started,
           <br />
           focus, and <span className="text-gradient">get more done</span>.
         </h1>
 
         <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-slatey sm:text-lg">
-          Calm, well-made digital products for students and creators who want
-          to stay organized, build better habits, and earn a little more along
-          the way.
+          Calm, well-made tools to help you land the job, find your path, or start something of your own — without the overwhelm.
         </p>
 
         <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
@@ -333,6 +341,7 @@ type Freebie = {
   icon: React.ReactNode;
   title: string;
   desc: string;
+  fileUrl: string; // path to the PDF, served from /public
 };
 
 const FREEBIES: Freebie[] = [
@@ -340,21 +349,25 @@ const FREEBIES: Freebie[] = [
     icon: <ClipboardList className="h-5 w-5" />,
     title: 'Weekly Planner',
     desc: 'A clean one-page planner to map your week without the noise.',
+    fileUrl: '/freebies/weekly-planner.pdf',
   },
   {
     icon: <BookOpen className="h-5 w-5" />,
     title: 'Study Checklist',
     desc: 'Stay on track each term with a simple, satisfying checklist.',
+    fileUrl: '/freebies/study-checklist.pdf',
   },
   {
     icon: <Target className="h-5 w-5" />,
     title: 'Focus Tracker',
     desc: 'Measure deep-work sessions and find your most productive hours.',
+    fileUrl: '/freebies/focus-tracker.pdf',
   },
   {
     icon: <Wallet className="h-5 w-5" />,
     title: 'Income Tracker',
     desc: 'A lightweight sheet to log side-income and see what adds up.',
+    fileUrl: '/freebies/income-tracker.pdf',
   },
 ];
 
@@ -363,18 +376,14 @@ function FreebieCard({
   onDownload,
 }: {
   f: Freebie;
-  onDownload: () => void;
+  onDownload: (f: Freebie) => Promise<boolean>;
 }) {
   const [state, setState] = useState<'idle' | 'busy' | 'done'>('idle');
 
   const click = async () => {
     setState('busy');
-    await onDownload();
-    // onDownload triggers auth modal if not signed in; only mark done if signed in
-    // We detect by checking if a session exists post-call via a quick re-check
-    const { data } = await supabase.auth.getSession();
-    if (data.session) setState('done');
-    else setState('idle');
+    const success = await onDownload(f);
+    setState(success ? 'done' : 'idle');
   };
 
   return (
@@ -407,17 +416,18 @@ function Freebies({
   onRequireAuth,
 }: {
   onNav: (id: string) => void;
-  onRequireAuth: (mode: 'signup') => void;
+  onRequireAuth: (mode: 'signup', freebie: Freebie) => void;
 }) {
   const ref = useReveal<HTMLDivElement>();
   const { user } = useAuth();
 
-  const handleDownload = async () => {
+  const handleDownload = async (f: Freebie): Promise<boolean> => {
     if (!user) {
-      onRequireAuth('signup');
-      return;
+      onRequireAuth('signup', f);
+      return false;
     }
-    // ⤓ REPLACE: trigger real file download / signed URL here.
+    triggerDownload(f.fileUrl, `${f.title}.pdf`);
+    return true;
   };
 
   return (
@@ -891,7 +901,7 @@ function Footer({ onNav }: { onNav: (id: string) => void }) {
               <LogoMark className="h-8 w-8" />
               <div className="flex flex-col leading-none">
                 <span className="text-base font-medium text-ink lowercase">
-                  etral
+                  eteral
                 </span>
                 <span className="text-[0.5rem] font-medium tracking-widest2 text-slatey uppercase mt-0.5">
                   Digital Products
@@ -988,6 +998,7 @@ export default function App() {
     recommendation: string;
   } | null>(null);
   const [reopenQuiz, setReopenQuiz] = useState(false);
+  const [pendingFreebie, setPendingFreebie] = useState<Freebie | null>(null);
 
   const onNav = (id: string) => {
     if (id === 'privacy' || id === 'terms') return;
@@ -1014,6 +1025,12 @@ export default function App() {
     setReopenQuiz(true);
   };
 
+  const requireAuthForFreebie = (mode: 'signup', freebie: Freebie) => {
+    setPendingFreebie(freebie);
+    setAuthMode(mode);
+    setAuthOpen(true);
+  };
+
   const onAuthSuccess = async () => {
     // After successful auth, if we came from the quiz, persist the result + reopen
     if (authCtx && reopenQuiz) {
@@ -1024,6 +1041,11 @@ export default function App() {
       setAuthCtx(null);
       setReopenQuiz(false);
       setQuizOpen(true);
+    }
+    // After successful auth, if we came from a freebie card, download it now
+    if (pendingFreebie) {
+      triggerDownload(pendingFreebie.fileUrl, `${pendingFreebie.title}.pdf`);
+      setPendingFreebie(null);
     }
   };
 
@@ -1049,7 +1071,7 @@ export default function App() {
       />
       <main>
         <Hero onNav={onNav} />
-        <Freebies onNav={onNav} onRequireAuth={openAuth} />
+        <Freebies onNav={onNav} onRequireAuth={requireAuthForFreebie} />
         <QuizSection onOpen={() => setQuizOpen(true)} />
         <Shop />
         <Trust />

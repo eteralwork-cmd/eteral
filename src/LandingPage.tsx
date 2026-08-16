@@ -472,10 +472,6 @@ function Freebies({
               Take the 30-second quiz and we'll point you to the right tool.
             </p>
           </div>
-          <GhostButton onClick={() => onNav('quiz')} className="shrink-0">
-            Take the Quiz
-            <ArrowRight className="h-4 w-4" />
-          </GhostButton>
            <Link to="/career-readiness" className="shrink-0">
             <GhostButton>
               Career Readiness Check
@@ -539,205 +535,6 @@ const RECS: Record<QuizOption['segment'], { title: string; desc: string; cta: st
     cta: 'Get the Focus Tracker',
   },
 };
-
-function QuizModal({
-  open,
-  onClose,
-  onNav,
-  onRequireAuth,
-}: {
-  open: boolean;
-  onClose: () => void;
-  onNav: (id: string) => void;
-  onRequireAuth: (mode: 'signup', ctx: { segment: string; recommendation: string }) => void;
-}) {
-  const { user } = useAuth();
-  const [step, setStep] = useState(0);
-  const [scores, setScores] = useState<Record<string, number>>({
-    student: 0,
-    hustler: 0,
-    habit: 0,
-  });
-  const [done, setDone] = useState(false);
-  const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    if (open) {
-      setStep(0);
-      setScores({ student: 0, hustler: 0, habit: 0 });
-      setDone(false);
-      setSaving(false);
-    }
-  }, [open]);
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
-    if (open) window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [open, onClose]);
-
-  if (!open) return null;
-
-  const pick = (opt: QuizOption) => {
-    const next = { ...scores, [opt.segment]: scores[opt.segment] + 1 };
-    setScores(next);
-    if (step < QUIZ.length - 1) setStep(step + 1);
-    else {
-      setDone(true);
-    }
-  };
-
-  const winner = (Object.entries(scores).sort((a, b) => b[1] - a[1])[0][0] ||
-    'habit') as QuizOption['segment'];
-  const rec = RECS[winner];
-
-  const revealResult = async () => {
-    if (!user) {
-      // gate: require auth before revealing the recommendation
-      onRequireAuth('signup', { segment: winner, recommendation: rec.title });
-      return;
-    }
-    // signed in — persist the quiz result
-    setSaving(true);
-    await supabase.from('quiz_results').insert({
-      segment: winner,
-      recommendation: rec.title,
-    });
-    setSaving(false);
-    onClose();
-    onNav('freebies');
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div
-        className="absolute inset-0 bg-ink/30 backdrop-blur-sm animate-fadeIn"
-        onClick={onClose}
-      />
-      <div className="relative w-full max-w-md rounded-3xl border border-mist bg-paper p-7 shadow-[0_30px_80px_-20px_rgba(42,42,46,0.35)] animate-fadeUp">
-        <button
-          onClick={onClose}
-          className="absolute right-5 top-5 text-slatey transition-colors hover:text-ink"
-          aria-label="Close"
-        >
-          <X className="h-5 w-5" />
-        </button>
-
-        {!done ? (
-          <>
-            <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-widest2 text-coral">
-              <Clock className="h-3.5 w-3.5" />
-              30-second quiz
-            </div>
-            <div className="mt-4 flex gap-1.5">
-              {QUIZ.map((_, i) => (
-                <div
-                  key={i}
-                  className={`h-1 flex-1 rounded-full transition-colors duration-300 ${
-                    i <= step ? 'bg-gradient-accent' : 'bg-mist'
-                  }`}
-                />
-              ))}
-            </div>
-            <h3 className="mt-6 text-xl font-semibold text-ink">{QUIZ[step].q}</h3>
-            <div className="mt-5 flex flex-col gap-2.5">
-              {QUIZ[step].options.map((o) => (
-                <button
-                  key={o.label}
-                  onClick={() => pick(o)}
-                  className="group flex items-center justify-between rounded-xl border border-mist bg-white/60 px-4 py-3.5 text-left text-sm font-medium text-ink transition-all duration-200 hover:border-ink/20 hover:bg-white"
-                >
-                  {o.label}
-                  <ArrowRight className="h-4 w-4 text-slatey transition-all duration-200 group-hover:translate-x-0.5 group-hover:text-ink" />
-                </button>
-              ))}
-            </div>
-            <p className="mt-5 text-xs text-slatey">
-              Question {step + 1} of {QUIZ.length}
-            </p>
-          </>
-        ) : (
-          <div className="text-center">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-accent text-white">
-              <Check className="h-7 w-7" />
-            </div>
-            <h3 className="mt-5 text-xl font-semibold text-ink">
-              Your recommendation
-            </h3>
-
-            {!user ? (
-              <>
-                <div className="mt-4 rounded-xl border border-mist bg-white/60 p-4">
-                  <p className="text-sm text-slatey">
-                    We've picked a recommendation just for you. Create a free
-                    account to reveal it and unlock your downloads.
-                  </p>
-                </div>
-                <div className="mt-6 flex flex-col gap-2.5">
-                  <PrimaryButton onClick={revealResult}>
-                    <Lock className="h-4 w-4" />
-                    Sign up to reveal my result
-                  </PrimaryButton>
-                  <GhostButton onClick={onClose}>Maybe later</GhostButton>
-                </div>
-              </>
-            ) : (
-              <>
-                <p className="mt-2 text-base font-medium text-ink">{rec.title}</p>
-                <p className="mt-2 text-sm leading-relaxed text-slatey">{rec.desc}</p>
-                <div className="mt-6 flex flex-col gap-2.5">
-                  <PrimaryButton onClick={revealResult} className={saving ? 'opacity-70' : ''}>
-                    {saving ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <>
-                        {rec.cta}
-                        <ArrowRight className="h-4 w-4" />
-                      </>
-                    )}
-                  </PrimaryButton>
-                  <GhostButton onClick={onClose}>Maybe later</GhostButton>
-                </div>
-              </>
-            )}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function QuizSection({ onOpen }: { onOpen: () => void }) {
-  const ref = useReveal<HTMLDivElement>();
-  return (
-    <section id="quiz" className="py-20 lg:py-28">
-      <div ref={ref} className="reveal mx-auto max-w-4xl px-6">
-        <div className="relative overflow-hidden rounded-3xl border border-mist bg-white/50 px-6 py-12 text-center backdrop-blur-sm sm:px-12 sm:py-16">
-          <div className="pointer-events-none absolute -top-10 -right-10 h-48 w-48 rounded-full bg-coral/20 blur-3xl" />
-          <div className="pointer-events-none absolute -bottom-10 -left-10 h-48 w-48 rounded-full bg-sky/20 blur-3xl" />
-          <div className="relative">
-            <span className="text-xs font-semibold uppercase tracking-widest2 text-coral">
-              Find your fit
-            </span>
-            <h2 className="mt-3 text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
-              Not sure where to start?
-            </h2>
-            <p className="mx-auto mt-4 max-w-md text-base leading-relaxed text-slatey">
-              Answer three quick questions and we'll recommend the right
-              resource for you — takes about 30 seconds.
-            </p>
-            <div className="mt-8">
-              <PrimaryButton onClick={onOpen}>
-                Take the 30-second quiz
-                <ArrowRight className="h-4 w-4" />
-              </PrimaryButton>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
 
 /* ------------------------------------------------------------------ */
 /*  Shop section                                                       */
@@ -998,24 +795,14 @@ function Footer({ onNav }: { onNav: (id: string) => void }) {
 /* ------------------------------------------------------------------ */
 /*  App                                                                */
 /* ------------------------------------------------------------------ */
-export default function LandingPage() {
+function LandingPage() {
   const { user, loading } = useAuth();
-  const [quizOpen, setQuizOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signup');
-  const [authCtx, setAuthCtx] = useState<{
-    segment: string;
-    recommendation: string;
-  } | null>(null);
-  const [reopenQuiz, setReopenQuiz] = useState(false);
   const [pendingFreebie, setPendingFreebie] = useState<Freebie | null>(null);
 
   const onNav = (id: string) => {
     if (id === 'privacy' || id === 'terms') return;
-    if (id === 'quiz') {
-      setQuizOpen(true);
-      return;
-    }
     const el = document.getElementById(id);
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
@@ -1025,16 +812,6 @@ export default function LandingPage() {
     setAuthOpen(true);
   };
 
-  const requireAuthForQuiz = (
-    mode: 'signup',
-    ctx: { segment: string; recommendation: string }
-  ) => {
-    setAuthCtx(ctx);
-    setAuthMode(mode);
-    setAuthOpen(true);
-    setReopenQuiz(true);
-  };
-
   const requireAuthForFreebie = (mode: 'signup', freebie: Freebie) => {
     setPendingFreebie(freebie);
     setAuthMode(mode);
@@ -1042,23 +819,11 @@ export default function LandingPage() {
   };
 
   const onAuthSuccess = async () => {
-    // After successful auth, if we came from the quiz, persist the result + reopen
-    if (authCtx && reopenQuiz) {
-      await supabase.from('quiz_results').insert({
-        segment: authCtx.segment,
-        recommendation: authCtx.recommendation,
-      });
-      setAuthCtx(null);
-      setReopenQuiz(false);
-      setQuizOpen(true);
-    }
-    // After successful auth, if we came from a freebie card, download it now
     if (pendingFreebie) {
       triggerDownload(pendingFreebie.fileUrl, `${pendingFreebie.title}.pdf`);
       setPendingFreebie(null);
     }
   };
-
   const signOut = async () => {
     await supabase.auth.signOut();
   };
@@ -1079,20 +844,13 @@ export default function LandingPage() {
         user={user}
         onSignOut={signOut}
       />
-      <main>
+   <main>
         <Hero onNav={onNav} />
         <Freebies onNav={onNav} onRequireAuth={requireAuthForFreebie} />
-        <QuizSection onOpen={() => setQuizOpen(true)} />
         <Shop />
         <Trust />
       </main>
       <Footer onNav={onNav} />
-      <QuizModal
-        open={quizOpen}
-        onClose={() => setQuizOpen(false)}
-        onNav={onNav}
-        onRequireAuth={requireAuthForQuiz}
-      />
       <AuthModal
         open={authOpen}
         onClose={() => setAuthOpen(false)}

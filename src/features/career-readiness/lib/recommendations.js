@@ -1,139 +1,107 @@
 /**
- * Category + readiness-stage config for the Eteral Career Readiness Assessment.
- *
- * This is the single source of truth for category metadata. Question data
- * (questions.js) references categories by `id`. Scoring (lib/scoring.js)
- * reads `weight` and `resourceId` from here. Nothing else in the app should
- * hard-code category labels or thresholds.
+ * Deterministic, human-written explanations and next actions per category.
+ * Used as the guaranteed fallback when the AI explanation endpoint is
+ * unavailable, disabled, or errors out — and as the default experience
+ * when AI personalization isn't requested at all.
  */
 
-export const CATEGORIES = [
-  {
-    id: "careerClarity",
-    label: "Career Clarity",
-    shortLabel: "Clarity",
-    description:
-      "How clearly you've defined the roles, industries, or paths you're aiming for.",
-    weight: 1,
-    resourceId: "career-direction-guide",
+export const CATEGORY_INSIGHTS = {
+  careerClarity: {
+    lowExplanation:
+      "Your biggest gap isn't ability — it's direction. Without a clear target, it's hard to know which skills, projects, or applications actually move you forward, so effort gets spread thin.",
+    highExplanation:
+      "You have a clear sense of what you're aiming for, which makes every other part of your preparation more efficient.",
+    action:
+      "Pick 2-3 specific target roles and write one sentence on why each fits you.",
   },
-  {
-    id: "skillReadiness",
-    label: "Skill Readiness",
-    shortLabel: "Skills",
-    description:
-      "How far your practical, job-relevant skills have progressed beyond coursework.",
-    weight: 1,
-    resourceId: "skill-roadmap",
+  skillReadiness: {
+    lowExplanation:
+      "Your biggest gap isn't necessarily knowledge — it's applied practice. Skills that have only been studied, not used, are hard for you to speak to confidently and hard for an employer to verify.",
+    highExplanation:
+      "Your skills are backed by real practice, not just coursework, which gives you concrete things to point to.",
+    action: "Pick one skill gap from a real job posting and practice it through a small, finished task.",
   },
-  {
-    id: "portfolioReadiness",
-    label: "Project & Portfolio Readiness",
-    shortLabel: "Portfolio",
-    description:
-      "How much visible, verifiable evidence of your abilities you can show an employer.",
-    weight: 1,
-    resourceId: "portfolio-guide",
+  portfolioReadiness: {
+    lowExplanation:
+      "Your biggest gap isn't necessarily your knowledge. You don't yet have enough visible evidence of your abilities for employers to evaluate.",
+    highExplanation:
+      "You have visible, well-explained work that gives employers real evidence of what you can do.",
+    action: "Finish and publish one project with a short write-up of the problem and your role.",
   },
-  {
-    id: "resumeReadiness",
-    label: "Resume Readiness",
-    shortLabel: "Resume",
-    description: "How complete, current, and targeted your resume is.",
-    weight: 1,
-    resourceId: "resume-toolkit",
+  resumeReadiness: {
+    lowExplanation:
+      "Your biggest gap is translation, not experience. An outdated or generic resume undersells work you've likely already done.",
+    highExplanation:
+      "Your resume is current and tailored, so it's doing its job of representing your actual experience.",
+    action: "Update your resume and tailor it to one specific job posting this week.",
   },
-  {
-    id: "professionalPresence",
-    label: "Professional Presence",
-    shortLabel: "Presence",
-    description:
-      "How discoverable and credible you look online to recruiters and peers.",
-    weight: 1,
-    resourceId: "personal-brand-guide",
+  professionalPresence: {
+    lowExplanation:
+      "Your biggest gap is discoverability. If a recruiter looked you up right now, there wouldn't be enough there to back up your resume.",
+    highExplanation:
+      "Your professional presence online reinforces your resume and makes you easy to verify.",
+    action: "Complete your LinkedIn (or equivalent) profile and align it with your target roles.",
   },
-  {
-    id: "interviewReadiness",
-    label: "Interview Readiness",
-    shortLabel: "Interviews",
-    description: "How prepared you are to perform well once you get an interview.",
-    weight: 1,
-    resourceId: "interview-prep-kit",
+  interviewReadiness: {
+    lowExplanation:
+      "Your biggest gap is rehearsal, not competence. Without practiced answers and mock reps, strong experience can come across unclear in the room.",
+    highExplanation:
+      "You're able to talk through your experience clearly and with specific examples, which is what interviews actually test.",
+    action: "Do one mock interview and prepare specific examples for the 5 most common behavioral questions.",
   },
-  {
-    id: "jobSearchReadiness",
-    label: "Job Search Readiness",
-    shortLabel: "Job Search",
-    description:
-      "How active, targeted, and systematic your actual job search process is.",
-    weight: 1,
-    resourceId: "job-search-tracker",
+  jobSearchReadiness: {
+    lowExplanation:
+      "Your biggest gap is consistency and system, not effort. A scattered, untracked search makes it hard to apply enough, follow up, or learn what's working.",
+    highExplanation:
+      "You run a consistent, tracked job search, which compounds over time far better than sporadic applications.",
+    action: "Set a weekly application target and track it in one place, including one networking outreach.",
   },
-  {
-    id: "organization",
-    label: "Organization & Execution",
-    shortLabel: "Organization",
-    description:
-      "How reliably you plan, track, and follow through on career preparation tasks.",
-    weight: 1,
-    resourceId: "career-planner",
+  organization: {
+    lowExplanation:
+      "Your biggest gap is follow-through, not intention. Without a written plan and a way to track it, career prep tends to lose to whatever feels urgent that day.",
+    highExplanation:
+      "You have a plan you actually track, which is what turns career prep into steady progress instead of good intentions.",
+    action: "Write a simple weekly plan for career prep and put it somewhere you'll actually see it.",
   },
-  {
-    id: "professionalGrowth",
-    label: "Professional Growth",
-    shortLabel: "Growth",
-    description:
-      "How consistently you're learning, seeking feedback, and building your network.",
-    weight: 1,
-    resourceId: "growth-habits-guide",
+  professionalGrowth: {
+    lowExplanation:
+      "Your biggest gap is feedback and network, not effort. Improving in private, without outside input, is slower and easier to misjudge.",
+    highExplanation:
+      "You actively seek feedback and build relationships, which accelerates everything else you're working on.",
+    action: "Ask one person for specific feedback on your resume, a project, or a practice interview.",
   },
-];
-
-export const CATEGORY_IDS = CATEGORIES.map((c) => c.id);
+};
 
 /**
- * Readiness stages. `min` is inclusive; stages are checked from highest
- * to lowest. Keep in sync with the spec: 0-39 / 40-59 / 60-74 / 75-89 / 90-100.
+ * Builds the "Recommended Next Steps" list (exactly 3) from the weakest
+ * categories, and the practical, non-generic explanation text used on the
+ * results screen.
  */
-export const READINESS_STAGES = [
-  {
-    id: "competitive",
-    min: 90,
-    label: "Competitive Stage",
-    summary:
-      "You demonstrate strong preparation across most areas. Focus now on refinement and differentiation, not basics.",
-  },
-  {
-    id: "jobReady",
-    min: 75,
-    label: "Job-Ready Stage",
-    summary:
-      "You're substantially prepared. A few targeted improvements will make you meaningfully more competitive.",
-  },
-  {
-    id: "developing",
-    min: 60,
-    label: "Developing Stage",
-    summary:
-      "You have a reasonable foundation but need stronger practical execution to convert it into results.",
-  },
-  {
-    id: "building",
-    min: 40,
-    label: "Building Stage",
-    summary:
-      "You've started preparing, but there are significant gaps that are likely limiting your results right now.",
-  },
-  {
-    id: "foundation",
-    min: 0,
-    label: "Foundation Stage",
-    summary:
-      "You're at the start of building career preparation habits and direction — which is a normal place to begin.",
-  },
-];
+export function buildLocalExplanations(scoreResult) {
+  const { weaknesses, strengths } = scoreResult;
 
-export function getReadinessStage(score) {
-  const stage = READINESS_STAGES.find((s) => score >= s.min);
-  return stage ?? READINESS_STAGES[READINESS_STAGES.length - 1];
+  const weaknessDetails = weaknesses.map((w) => ({
+    ...w,
+    explanation: CATEGORY_INSIGHTS[w.id]?.lowExplanation ?? "",
+  }));
+
+  const strengthDetails = strengths.map((s) => ({
+    ...s,
+    explanation: CATEGORY_INSIGHTS[s.id]?.highExplanation ?? "",
+  }));
+
+  const recommendedActions = weaknesses
+    .slice(0, 3)
+    .map((w) => CATEGORY_INSIGHTS[w.id]?.action)
+    .filter(Boolean);
+
+  const primaryBottleneckExplanation =
+    CATEGORY_INSIGHTS[scoreResult.primaryBottleneck.id]?.lowExplanation ?? "";
+
+  return {
+    weaknessDetails,
+    strengthDetails,
+    recommendedActions,
+    primaryBottleneckExplanation,
+  };
 }

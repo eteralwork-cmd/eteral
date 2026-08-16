@@ -22,6 +22,10 @@ import {
 import { supabase } from './lib/supabase';
 import { useAuth } from './lib/auth';
 import AuthModal from './AuthModal';
+import { Routes, Route, useNavigate, Link } from 'react-router-dom';
+import { CareerReadinessQuiz } from './features/career-readiness';
+
+
 
 /* ------------------------------------------------------------------ */
 /*  Eteral — Landing Page                                             */
@@ -472,6 +476,12 @@ function Freebies({
             Take the Quiz
             <ArrowRight className="h-4 w-4" />
           </GhostButton>
+           <Link to="/career-readiness" className="shrink-0">
+            <GhostButton>
+              Career Readiness Check
+              <ArrowRight className="h-4 w-4" />
+            </GhostButton>
+          </Link>
         </div>
       </div>
     </section>
@@ -988,7 +998,7 @@ function Footer({ onNav }: { onNav: (id: string) => void }) {
 /* ------------------------------------------------------------------ */
 /*  App                                                                */
 /* ------------------------------------------------------------------ */
-export default function App() {
+export default function LandingPage() {
   const { user, loading } = useAuth();
   const [quizOpen, setQuizOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
@@ -1090,5 +1100,51 @@ export default function App() {
         onSuccess={onAuthSuccess}
       />
     </div>
+  );
+}
+
+function CareerReadinessPage() {
+  const navigate = useNavigate();
+  const { user, loading } = useAuth();
+
+  const onNav = (id: string) => {
+    navigate('/');
+  };
+
+  const signOut = async () => {
+    await supabase.auth.signOut();
+  };
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-slatey" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative min-h-screen overflow-x-hidden">
+      <Header onNav={onNav} onAuth={() => navigate('/')} user={user} onSignOut={signOut} />
+      <div className="pt-28 px-6 max-w-2xl mx-auto">
+        <button
+          onClick={() => navigate('/')}
+          className="text-sm font-medium text-slatey hover:text-ink transition-colors"
+        >
+          ← Back to Eteral
+        </button>
+      </div>
+      <CareerReadinessQuiz />
+      <Footer onNav={onNav} />
+    </div>
+  );
+}
+
+export default function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<LandingPage />} />
+      <Route path="/career-readiness" element={<CareerReadinessPage />} />
+    </Routes>
   );
 }

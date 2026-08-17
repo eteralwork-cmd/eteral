@@ -860,10 +860,10 @@ function LandingPage() {
     </div>
   );
 }
-
 function CareerReadinessPage() {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
+  const [authOpen, setAuthOpen] = useState(false);
 
   const onNav = (id: string) => {
     navigate('/');
@@ -883,7 +883,7 @@ function CareerReadinessPage() {
 
   return (
     <div className="relative min-h-screen overflow-x-hidden">
-      <Header onNav={onNav} onAuth={() => navigate('/')} user={user} onSignOut={signOut} />
+      <Header onNav={onNav} onAuth={() => setAuthOpen(true)} user={user} onSignOut={signOut} />
       <div className="pt-28 px-6 max-w-2xl mx-auto">
         <button
           onClick={() => navigate('/')}
@@ -892,12 +892,20 @@ function CareerReadinessPage() {
           ← Back to Eteral
         </button>
       </div>
-      <CareerReadinessQuiz />
+      <CareerReadinessQuiz
+        isAuthenticated={!!user}
+        onRequireAuth={() => setAuthOpen(true)}
+      />
       <Footer onNav={onNav} />
+      <AuthModal
+        open={authOpen}
+        onClose={() => setAuthOpen(false)}
+        initialMode="signup"
+        onSuccess={() => setAuthOpen(false)}
+      />
     </div>
   );
 }
-
 export default function App() {
   return (
     <Routes>

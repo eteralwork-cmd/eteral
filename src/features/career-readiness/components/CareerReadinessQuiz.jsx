@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { QUESTIONS, TOTAL_QUESTIONS } from "../data/questions.js";
 import { isQuizComplete } from "../lib/scoring.js";
 import { buildQuizResult } from "../lib/resultBuilder.js";
@@ -9,17 +9,19 @@ import ResultScreen from "./ResultScreen.jsx";
 /**
  * Self-contained Career Readiness Assessment.
  *
- * Usage:
- *   <CareerReadinessQuiz />                  // scoring-only, no AI calls
- *   <CareerReadinessQuiz useAI />             // also tries AI-enhanced wording,
- *                                              // with automatic local fallback
- *
- * This component owns all of its own state and does not read or write any
- * global app state, routing, or styles beyond the `crq-*` class hooks below
- * (safe to leave unstyled — Tailwind utility classes carry the actual look).
+ * Auth gating (optional): pass `isAuthenticated` + `onRequireAuth` to require
+ * sign-up before results are revealed. The quiz still computes the score
+ * locally as soon as they finish — it just holds the result screen back
+ * until `isAuthenticated` is true. If these props are omitted, results show
+ * immediately (original behavior).
  */
-export default function CareerReadinessQuiz({ useAI = false, className = "" }) {
-  const [stage, setStage] = useState("intro"); // intro | quiz | loading | results | error
+export default function CareerReadinessQuiz({
+  useAI = false,
+  className = "",
+  isAuthenticated = true,
+  onRequireAuth,
+}) {
+  const [stage, setStage] = useState("intro"); // intro | quiz | loading | locked | results | error
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState({});
   const [result, setResult] = useState(null);
@@ -30,6 +32,14 @@ export default function CareerReadinessQuiz({ useAI = false, className = "" }) {
   const hasAnsweredCurrent = typeof answers[currentQuestion?.id] === "number";
 
   const canSubmit = useMemo(() => isQuizComplete(answers), [answers]);
+
+  // If the user finishes signup/login while the "locked" screen is showing,
+  // automatically reveal the already-computed results.
+  useEffect(() => {
+    if (stage === "locked" && isAuthenticated && result) {
+      setStage("results");
+    }
+  }, [isAuthenticated, stage, result]);
 
   function handleSelect(questionId, value) {
     setAnswers((prev) => ({ ...prev, [questionId]: value }));
@@ -54,7 +64,13 @@ export default function CareerReadinessQuiz({ useAI = false, className = "" }) {
     try {
       const finalResult = await buildQuizResult(answers, { useAI });
       setResult(finalResult);
-      setStage("results");
+
+      if (isAuthenticated) {
+        setStage("results");
+      } else {
+        setStage("locked");
+        onRequireAuth?.();
+      }
     } catch (err) {
       console.error("Career Readiness Quiz: failed to build result", err);
       setStage("error");
@@ -114,6 +130,26 @@ export default function CareerReadinessQuiz({ useAI = false, className = "" }) {
         <div className="flex flex-col items-center justify-center py-24 text-center" role="status" aria-live="polite">
           <div className="h-8 w-8 rounded-full border-2 border-slate-200 border-t-indigo-600 animate-spin mb-4" />
           <p className="text-slate-500 text-sm">Calculating your results…</p>
+        </div>
+      )}
+
+      {stage === "locked" && (
+        <div className="text-center py-16" role="status" aria-live="polite">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-600 text-white text-2xl">
+            🔒
+          </div>
+          <h2 className="mt-5 text-xl font-semibold text-slate-900">Your results are ready</h2>
+          <p className="mt-2 text-sm text-slate-500 max-w-sm mx-auto">
+            Create a free account to see your Career Readiness score, your biggest gaps, and your
+            30-day action plan.
+          </p>
+          <button
+            type="button"
+            onClick={() => onRequireAuth?.()}
+            className="mt-6 rounded-xl bg-indigo-600 px-6 py-3 text-sm font-semibold text-white hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 transition-colors"
+          >
+            Sign up to see my results
+          </button>
         </div>
       )}
 

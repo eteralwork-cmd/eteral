@@ -24,6 +24,8 @@ import { useAuth } from './lib/auth';
 import AuthModal from './AuthModal';
 import { Routes, Route, useNavigate, Link } from 'react-router-dom';
 import { CareerReadinessQuiz } from './features/career-readiness';
+import BlogList from './features/blog/BlogList.jsx';
+import BlogPost from './features/blog/BlogPost.jsx';
 
 
 
@@ -911,6 +913,8 @@ export default function App() {
     <Routes>
       <Route path="/" element={<LandingPage />} />
       <Route path="/career-readiness" element={<CareerReadinessPage />} />
+      <Route path="/blog" element={<BlogList />} />
+      <Route path="/blog/:slug" element={<BlogPost />} />
     </Routes>
   );
 }

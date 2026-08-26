@@ -26,6 +26,7 @@ import { Routes, Route, useNavigate, Link } from 'react-router-dom';
 import { CareerReadinessQuiz } from './features/career-readiness';
 import BlogList from './features/blog/BlogList.jsx';
 import BlogPost from './features/blog/BlogPost.jsx';
+import { sanityClient, urlForImage } from './features/blog/sanityClient.js';
 
 
 
@@ -347,46 +348,59 @@ type Freebie = {
   icon: React.ReactNode;
   title: string;
   desc: string;
-  fileUrl: string; // path to the PDF, served from /public
+  fileUrl: string;
+  unlockAfterDays?: number; // undefined = available immediately after signup
 };
 
 const FREEBIES: Freebie[] = [
   {
     icon: <ClipboardList className="h-5 w-5" />,
-    title: 'Weekly Planner',
-    desc: 'A clean one-page planner to map your week without the noise.',
-    fileUrl: '/freebies/weekly-planner.pdf',
+    title: 'ATS Resume Checklist',
+    desc: 'A clean one-page checklist to see if your resume reaches the human',
+    fileUrl: '/freebies/eteral-ats-resume-checklist.pdf',
   },
   {
     icon: <BookOpen className="h-5 w-5" />,
-    title: 'Study Checklist',
-    desc: 'Stay on track each term with a simple, satisfying checklist.',
-    fileUrl: '/freebies/study-checklist.pdf',
+    title: 'ATS-Friendly Editable Resume',
+    desc: 'An editable, ATS-friendly resume template',
+    fileUrl: '/freebies/ats-friendly-tech-resume-template.pdf',
   },
   {
     icon: <Target className="h-5 w-5" />,
-    title: 'Focus Tracker',
-    desc: 'Measure deep-work sessions and find your most productive hours.',
-    fileUrl: '/freebies/focus-tracker.pdf',
+    title: 'Career Organization Kit',
+    desc: 'Unlocks in your third week with Eteral',
+    fileUrl: '/freebies/organization-tracker.pdf',
+    unlockAfterDays: 21,
   },
   {
     icon: <Wallet className="h-5 w-5" />,
-    title: 'Income Tracker',
-    desc: 'A lightweight sheet to log side-income and see what adds up.',
-    fileUrl: '/freebies/income-tracker.pdf',
+    title: 'Eteral Career Kit',
+    desc: 'Unlocks after your first month with Eteral',
+    fileUrl: '/freebies/career-kit.pdf',
+    unlockAfterDays: 30,
   },
 ];
+
+function daysSince(date: string | Date): number {
+  const ms = Date.now() - new Date(date).getTime();
+  return Math.floor(ms / (1000 * 60 * 60 * 24));
+}
 
 function FreebieCard({
   f,
   onDownload,
+  locked,
+  unlocksInDays,
 }: {
   f: Freebie;
   onDownload: (f: Freebie) => Promise<boolean>;
+  locked: boolean;
+  unlocksInDays?: number;
 }) {
   const [state, setState] = useState<'idle' | 'busy' | 'done'>('idle');
 
   const click = async () => {
+    if (locked) return;
     setState('busy');
     const success = await onDownload(f);
     setState(success ? 'done' : 'idle');
@@ -399,20 +413,30 @@ function FreebieCard({
       </div>
       <h3 className="mt-5 text-base font-semibold text-ink">{f.title}</h3>
       <p className="mt-2 flex-1 text-sm leading-relaxed text-slatey">{f.desc}</p>
-      <button
-        onClick={click}
-        disabled={state === 'busy'}
-        className="mt-5 inline-flex items-center gap-1.5 self-start text-sm font-medium text-ink transition-colors hover:text-coral disabled:opacity-60"
-      >
-        {state === 'busy' ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : state === 'done' ? (
-          <Check className="h-4 w-4 text-coral" />
-        ) : (
-          <Download className="h-4 w-4" />
-        )}
-        {state === 'done' ? 'Downloaded' : 'Download'}
-      </button>
+
+      {locked ? (
+        <div className="mt-5 inline-flex items-center gap-1.5 self-start text-sm font-medium text-slatey">
+          <Lock className="h-4 w-4" />
+          {unlocksInDays && unlocksInDays > 0
+            ? `Unlocks in ${unlocksInDays} day${unlocksInDays === 1 ? '' : 's'}`
+            : 'Locked'}
+        </div>
+      ) : (
+        <button
+          onClick={click}
+          disabled={state === 'busy'}
+          className="mt-5 inline-flex items-center gap-1.5 self-start text-sm font-medium text-ink transition-colors hover:text-coral disabled:opacity-60"
+        >
+          {state === 'busy' ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : state === 'done' ? (
+            <Check className="h-4 w-4 text-coral" />
+          ) : (
+            <Download className="h-4 w-4" />
+          )}
+          {state === 'done' ? 'Downloaded' : 'Download'}
+        </button>
+      )}
     </div>
   );
 }
@@ -436,11 +460,13 @@ function Freebies({
     return true;
   };
 
+  const memberDays = user ? daysSince(user.created_at) : 0;
+
   return (
     <section id="freebies" className="py-20 lg:py-28">
       <div className="mx-auto max-w-6xl px-6">
         <div ref={ref} className="reveal max-w-2xl">
-          <span className="text-xs font-semibold uppercase tracking-widest2 text-coral">
+          <span className="text-xs font-semibold uppercase tracking-widest text-coral">
             Start free
           </span>
           <h2 className="mt-3 text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
@@ -453,9 +479,21 @@ function Freebies({
         </div>
 
         <div className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {FREEBIES.map((f) => (
-            <FreebieCard key={f.title} f={f} onDownload={handleDownload} />
-          ))}
+          {FREEBIES.map((f) => {
+            const locked = !!f.unlockAfterDays && (!user || memberDays < f.unlockAfterDays);
+            const unlocksInDays = f.unlockAfterDays
+              ? Math.max(f.unlockAfterDays - memberDays, 0)
+              : undefined;
+            return (
+              <FreebieCard
+                key={f.fileUrl}
+                f={f}
+                onDownload={handleDownload}
+                locked={locked}
+                unlocksInDays={unlocksInDays}
+              />
+            );
+          })}
         </div>
 
         {!user && (
@@ -474,7 +512,7 @@ function Freebies({
               Take the 30-second quiz and we'll point you to the right tool.
             </p>
           </div>
-           <Link to="/career-readiness" className="shrink-0">
+          <Link to="/career-readiness" className="shrink-0">
             <GhostButton>
               Career Readiness Check
               <ArrowRight className="h-4 w-4" />
@@ -542,100 +580,143 @@ const RECS: Record<QuizOption['segment'], { title: string; desc: string; cta: st
 /*  Shop section                                                       */
 /*  ⤓ REPLACE: swap placeholder products with real Payhip listings.  */
 /* ------------------------------------------------------------------ */
-type Product = {
+
+
+type BlogPost = {
+  _id: string;
   title: string;
-  price: string;
-  desc: string;
-  tag: string;
+  slug: { current: string };
+  excerpt: string;
+  mainImage: any;
+  publishedAt: string;
 };
 
-const PRODUCTS: Product[] = [
-  {
-    title: 'The Complete Student System',
-    price: '$19',
-    desc: 'A full Notion workspace for notes, deadlines, revision and exams.',
-    tag: 'Notion template',
-  },
-  {
-    title: 'Side Income Starter Kit',
-    price: '$24',
-    desc: 'Templates and trackers to launch, log and grow a small online income.',
-    tag: 'Bundle',
-  },
-  {
-    title: 'Deep Focus Planner',
-    price: '$15',
-    desc: 'A printable planner built around deep-work blocks and weekly reviews.',
-    tag: 'Printable',
-  },
-  {
-    title: 'Habit & Routine Builder',
-    price: '$12',
-    desc: 'Design calmer mornings and steadier days with a guided habit system.',
-    tag: 'Workbook',
-  },
-  {
-    title: 'Budget for Students',
-    price: '$9',
-    desc: 'A simple, friendly budget that actually works on a student income.',
-    tag: 'Spreadsheet',
-  },
-  {
-    title: 'Exam Prep Pack',
-    price: '$18',
-    desc: 'Revision schedules, flashcard templates and a calm exam-day checklist.',
-    tag: 'Bundle',
-  },
-];
+const LATEST_POST_QUERY = `*[_type == "post"] | order(publishedAt desc)[0]{
+  _id,
+  title,
+  slug,
+  excerpt,
+  mainImage,
+  publishedAt
+}`;
 
-function ProductCard({ p }: { p: Product }) {
+function formatDate(dateStr: string) {
+  return new Date(dateStr).toLocaleDateString('en-US', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  });
+}
+
+function BlogCard({ post }: { post: BlogPost }) {
+  const imageUrl = post.mainImage ? urlForImage(post.mainImage) : null;
+
   return (
-    <div className="group flex flex-col overflow-hidden rounded-2xl border border-mist bg-white/60 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_40px_-20px_rgba(42,42,46,0.18)]">
+    <Link
+      to={`/blog/${post.slug.current}`}
+      className="group flex flex-col overflow-hidden rounded-2xl border border-mist bg-white/60 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_40px_-20px_rgba(42,42,46,0.18)]"
+    >
       <div className="relative aspect-[4/3] w-full overflow-hidden bg-gradient-to-br from-coral/15 via-paper to-sky/15">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-xs font-medium uppercase tracking-widest2 text-slatey/70">
-            {p.tag}
-          </span>
-        </div>
+        {imageUrl ? (
+          <img
+            src={imageUrl}
+            alt={post.title}
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="text-xs font-medium uppercase tracking-widest text-slatey/70">
+              Blog
+            </span>
+          </div>
+        )}
         <div className="pointer-events-none absolute -bottom-6 -right-6 h-24 w-24 rounded-full bg-coral/20 blur-2xl transition-opacity duration-300 group-hover:opacity-80" />
       </div>
       <div className="flex flex-1 flex-col p-6">
         <div className="flex items-start justify-between gap-3">
-          <h3 className="text-base font-semibold text-ink">{p.title}</h3>
-          <span className="shrink-0 text-base font-semibold text-ink">{p.price}</span>
+          <h3 className="text-base font-semibold text-ink">{post.title}</h3>
+          <span className="shrink-0 text-xs font-medium text-slatey">
+            {formatDate(post.publishedAt)}
+          </span>
         </div>
-        <p className="mt-2 flex-1 text-sm leading-relaxed text-slatey">{p.desc}</p>
-        {/* ⤓ REPLACE: insert Payhip buy button / checkout link here */}
-        <button className="mt-5 inline-flex items-center justify-center gap-2 rounded-full bg-gradient-accent px-5 py-2.5 text-sm font-medium text-white transition-all duration-300 hover:scale-[1.03]">
-          Buy Now
+        <p className="mt-2 flex-1 text-sm leading-relaxed text-slatey">
+          {post.excerpt}
+        </p>
+        <span className="mt-5 inline-flex items-center justify-center gap-2 self-start rounded-full bg-gradient-accent px-5 py-2.5 text-sm font-medium text-white transition-all duration-300 group-hover:scale-[1.03]">
+          Read the post
           <ArrowRight className="h-4 w-4" />
-        </button>
+        </span>
+      </div>
+    </Link>
+  );
+}
+
+function BlogCardSkeleton() {
+  return (
+    <div className="animate-pulse overflow-hidden rounded-2xl border border-mist bg-white/60 backdrop-blur-sm">
+      <div className="aspect-[4/3] w-full bg-mist" />
+      <div className="p-6">
+        <div className="h-4 w-2/3 rounded bg-mist" />
+        <div className="mt-3 h-3 w-full rounded bg-mist" />
+        <div className="mt-2 h-3 w-4/5 rounded bg-mist" />
       </div>
     </div>
   );
 }
 
-function Shop() {
+function Blog() {
   const ref = useReveal<HTMLDivElement>();
+  const [post, setPost] = useState<BlogPost | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    sanityClient
+      .fetch<BlogPost>(LATEST_POST_QUERY)
+      .then((data: BlogPost) => {
+        if (!cancelled) setPost(data);
+      })
+      .catch(() => {
+        if (!cancelled) setError(true);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   return (
-    <section id="shop" className="py-20 lg:py-28">
+    <section id="blog" className="py-20 lg:py-28">
       <div className="mx-auto max-w-6xl px-6">
         <div ref={ref} className="reveal max-w-2xl">
-          <span className="text-xs font-semibold uppercase tracking-widest2 text-coral">
-            Shop
+          <span className="text-xs font-semibold uppercase tracking-widest text-coral">
+            Blog
           </span>
           <h2 className="mt-3 text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
-            Explore our products
+            From the blog
           </h2>
           <p className="mt-4 text-base leading-relaxed text-slatey">
-            Thoughtfully built templates, planners and systems — each one
-            designed to be simple to use and genuinely useful.
+            Thoughts, guides and updates — written to be simple to read and
+            genuinely useful.
           </p>
         </div>
+
         <div className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {PRODUCTS.map((p) => (
-            <ProductCard key={p.title} p={p} />
-          ))}
+          {loading && <BlogCardSkeleton />}
+          {!loading && error && (
+            <p className="text-sm text-slatey">
+              Couldn't load the latest post right now.
+            </p>
+          )}
+          {!loading && !error && !post && (
+            <p className="text-sm text-slatey">No posts yet — check back soon.</p>
+          )}
+          {!loading && !error && post && <BlogCard post={post} />}
         </div>
       </div>
     </section>
@@ -849,7 +930,6 @@ function LandingPage() {
    <main>
         <Hero onNav={onNav} />
         <Freebies onNav={onNav} onRequireAuth={requireAuthForFreebie} />
-        <Shop />
         <Trust />
       </main>
       <Footer onNav={onNav} />

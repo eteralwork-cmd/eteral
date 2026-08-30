@@ -30,6 +30,8 @@ import { sanityClient, urlForImage } from './features/blog/sanityClient.js';
 
 
 
+
+
 /* ------------------------------------------------------------------ */
 /*  Eteral — Landing Page                                             */
 /*  Placeholder sections are clearly marked with ⤓ REPLACE comments.  */
@@ -79,7 +81,7 @@ function LogoMark({ className = 'h-8 w-8' }: { className?: string }) {
           <stop offset="0%" stopColor="#F5A3A0" />
           <stop offset="100%" stopColor="#EF8A86" />
         </linearGradient>
-        
+
         <linearGradient id="skyG" x1="0" y1="1" x2="1" y2="0">
           <stop offset="0%" stopColor="#9CC4F0" />
           <stop offset="100%" stopColor="#7FB0EC" />
@@ -161,6 +163,48 @@ function GhostButton({
     >
       {children}
     </button>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Nav — Unified navigation component                                */
+/* ------------------------------------------------------------------ */
+type NavLink = {
+  label: string;
+  id?: string;
+  path?: string;
+  type: 'route' | 'scroll';
+};
+
+function Nav({ links }: { links: NavLink[] }) {
+  const navigate = useNavigate();
+
+  const handleScrollClick = (id: string) => {
+    // if we're not on the homepage, go there first, then scroll
+    if (window.location.pathname !== '/') {
+      navigate('/');
+      setTimeout(() => {
+        document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    } else {
+      document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  return (
+    <nav>
+      {links.map((link) =>
+        link.type === 'route' ? (
+          <Link key={link.label} to={link.path!}>
+            {link.label}
+          </Link>
+        ) : (
+          <button key={link.label} onClick={() => handleScrollClick(link.id!)}>
+            {link.label}
+          </button>
+        )
+      )}
+    </nav>
   );
 }
 
@@ -775,13 +819,15 @@ function Footer({ onNav }: { onNav: (id: string) => void }) {
     setTimeout(() => setSent(false), 3000);
   };
 
+ 
+
   const links = [
-    { label: 'Freebies', id: 'freebies' },
-    { label: 'Shop', id: 'shop' },
-    { label: 'Contact', id: 'contact' },
-    { label: 'Privacy Policy', id: 'privacy' },
-    { label: 'Terms', id: 'terms' },
-  ];
+  { label: 'Freebies', id: 'freebies', type: 'scroll' },
+  { label: 'Shop', id: 'shop', type: 'scroll' },
+  { label: 'Contact', id: 'contact', type: 'scroll' },
+  { label: 'Privacy Policy', path: '/privacy-policy', type: 'route' },
+  { label: 'Terms', path: '/terms-and-conditions', type: 'route' },
+];
 
   return (
     <footer id="contact" className="border-t border-mist bg-white/40">

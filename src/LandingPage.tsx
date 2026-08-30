@@ -79,6 +79,7 @@ function LogoMark({ className = 'h-8 w-8' }: { className?: string }) {
           <stop offset="0%" stopColor="#F5A3A0" />
           <stop offset="100%" stopColor="#EF8A86" />
         </linearGradient>
+        
         <linearGradient id="skyG" x1="0" y1="1" x2="1" y2="0">
           <stop offset="0%" stopColor="#9CC4F0" />
           <stop offset="100%" stopColor="#7FB0EC" />

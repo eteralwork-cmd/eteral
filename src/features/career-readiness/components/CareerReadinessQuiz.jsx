@@ -33,56 +33,42 @@ export default function CareerReadinessQuiz({
 
   const canSubmit = useMemo(() => isQuizComplete(answers), [answers]);
 
+  const STORAGE_KEY = "crq_quiz_state";
+
+// restore on mount
+useEffect(() => {
+  const saved = sessionStorage.getItem(STORAGE_KEY);
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      setAnswers(parsed.answers ?? {});
+      setResult(parsed.result ?? null);
+      if (parsed.result) {
+        setStage(isAuthenticated ? "results" : "locked");
+      }
+    } catch {}
+  }
+}, []); // run once
+
+// persist whenever answers/result change meaningfully
+useEffect(() => {
+  if (result) {
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ answers, result }));
+  }
+}, [answers, result]);
+
+// clear once they've actually seen results and restart
+function handleRestart() {
+  sessionStorage.removeItem(STORAGE_KEY);
+  setAnswers({});
+  setCurrentIndex(0);
+  setResult(null);
+  setStage("intro");
+}
+
   // If the user finishes signup/login while the "locked" screen is showing,
   // automatically reveal the already-computed results.
-  useEffect(() => {
-    if (stage === "locked" && isAuthenticated && result) {
-      setStage("results");
-    }
-  }, [isAuthenticated, stage, result]);
-
-  function handleSelect(questionId, value) {
-    setAnswers((prev) => ({ ...prev, [questionId]: value }));
-  }
-
-  function handleNext() {
-    if (!hasAnsweredCurrent) return;
-    if (isLastQuestion) {
-      handleSubmit();
-    } else {
-      setCurrentIndex((i) => Math.min(i + 1, TOTAL_QUESTIONS - 1));
-    }
-  }
-
-  function handleBack() {
-    setCurrentIndex((i) => Math.max(i - 1, 0));
-  }
-
-  async function handleSubmit() {
-    if (!canSubmit) return;
-    setStage("loading");
-    try {
-      const finalResult = await buildQuizResult(answers, { useAI });
-      setResult(finalResult);
-
-      if (isAuthenticated) {
-        setStage("results");
-      } else {
-        setStage("locked");
-        onRequireAuth?.();
-      }
-    } catch (err) {
-      console.error("Career Readiness Quiz: failed to build result", err);
-      setStage("error");
-    }
-  }
-
-  function handleRestart() {
-    setAnswers({});
-    setCurrentIndex(0);
-    setResult(null);
-    setStage("intro");
-  }
+  
 
   function handleRetry() {
     setStage("quiz");

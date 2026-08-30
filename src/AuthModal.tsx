@@ -37,6 +37,7 @@ function GoogleIcon({ className = 'h-4 w-4' }: { className?: string }) {
   );
 }
 
+
 export default function AuthModal({
   open,
   onClose,
@@ -93,7 +94,7 @@ export default function AuthModal({
     const { error: err } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: window.location.origin,
+        redirectTo: window.location.href,
       },
     });
     if (err) {

@@ -27,6 +27,8 @@ import { CareerReadinessQuiz } from './features/career-readiness';
 import BlogList from './features/blog/BlogList.jsx';
 import BlogPost from './features/blog/BlogPost.jsx';
 import { sanityClient, urlForImage } from './features/blog/sanityClient.js';
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsAndConditions from "./pages/TermsAndConditions";
 
 
 
@@ -807,6 +809,7 @@ function Trust() {
 /*  Footer                                                             */
 /* ------------------------------------------------------------------ */
 function Footer({ onNav }: { onNav: (id: string) => void }) {
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
 
@@ -875,13 +878,22 @@ function Footer({ onNav }: { onNav: (id: string) => void }) {
             </h4>
             <ul className="mt-4 space-y-3">
               {links.map((l) => (
-                <li key={l.id}>
-                  <button
-                    onClick={() => onNav(l.id)}
-                    className="text-sm text-slatey transition-colors hover:text-ink"
-                  >
-                    {l.label}
-                  </button>
+                <li key={l.id || l.path}>
+                  {l.type === 'route' ? (
+                    <Link
+                      to={l.path!}
+                      className="text-sm text-slatey transition-colors hover:text-ink"
+                    >
+                      {l.label}
+                    </Link>
+                  ) : (
+                    <button
+                      onClick={() => onNav(l.id!)}
+                      className="text-sm text-slatey transition-colors hover:text-ink"
+                    >
+                      {l.label}
+                    </button>
+                  )}
                 </li>
               ))}
             </ul>
@@ -1042,6 +1054,8 @@ export default function App() {
       <Route path="/career-readiness" element={<CareerReadinessPage />} />
       <Route path="/blog" element={<BlogList />} />
       <Route path="/blog/:slug" element={<BlogPost />} />
+      <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+      <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
     </Routes>
   );
 }

@@ -19,6 +19,8 @@ export default function BlogList() {
     <div className="max-w-3xl mx-auto px-6 py-16">
       <h1 className="text-3xl font-semibold text-ink mb-10">Blog</h1>
       <div className="flex flex-col gap-8">
+
+        
         {posts.map((post) => (
           <Link key={post._id} to={`/blog/${post.slug.current}`} className="group block">
             {post.mainImage && (
@@ -31,6 +33,18 @@ export default function BlogList() {
             <h2 className="text-xl font-semibold text-ink group-hover:text-coral transition-colors">
               {post.title}
             </h2>
+            {post.categories?.length > 0 && (
+              <div className="flex gap-2 mb-2">
+                {post.categories.map((cat) => (
+                  <span
+                    key={cat.slug.current}
+                    className="text-xs font-medium text-coral bg-coral/10 rounded-full px-2.5 py-1"
+                  >
+                    {cat.title}
+                  </span>
+                ))}
+              </div>
+            )}
             {post.excerpt && <p className="mt-2 text-slatey text-sm">{post.excerpt}</p>}
           </Link>
         ))}

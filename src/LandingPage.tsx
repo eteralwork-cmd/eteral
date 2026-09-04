@@ -776,9 +776,9 @@ function Blog() {
 function Trust() {
   const ref = useReveal<HTMLDivElement>();
   const stats = [
-    { value: '1,000+', label: 'Students & creators' },
-    { value: '4.9/5', label: 'Average rating' },
-    { value: '12k+', label: 'Downloads' },
+    { value: '98+', label: 'Students & creators' },
+    { value: '4.9', label: 'Average rating' },
+    { value: '150+', label: 'Downloads' },
   ];
   return (
     <section className="py-12">

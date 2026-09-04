@@ -213,7 +213,7 @@ function Nav({ links }: { links: NavLink[] }) {
 /* ------------------------------------------------------------------ */
 /*  Header                                                             */
 /* ------------------------------------------------------------------ */
-function Header({
+export function Header({
   onNav,
   onAuth,
   user,
@@ -808,7 +808,7 @@ function Trust() {
 /* ------------------------------------------------------------------ */
 /*  Footer                                                             */
 /* ------------------------------------------------------------------ */
-function Footer({ onNav }: { onNav: (id: string) => void }) {
+export function Footer({ onNav }: { onNav: (id: string) => void }) {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);

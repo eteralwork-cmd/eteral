@@ -1,105 +1,47 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
+import { Search, Loader2 } from 'lucide-react';
 import { sanityClient, urlForImage } from './sanityClient.js';
 import { POSTS_LIST_QUERY, CATEGORIES_QUERY } from './queries.js';
-import { estimateReadingTime } from '../../lib/readingTime.js';
 import { Header, Footer } from '../../LandingPage.tsx';
 import AuthModal from '../../AuthModal.tsx';
 import { useAuth } from '../../lib/auth';
 import { supabase } from '../../lib/supabase';
 
+const PAGE_SIZE = 6;
+
 function formatDate(dateStr) {
   if (!dateStr) return '';
-  return new Date(dateStr).toLocaleDateString('en-US', {
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric',
-  });
+  return new Date(dateStr)
+    .toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    .toUpperCase();
 }
 
-function ArticleCard({ post }) {
-  const readingTime = estimateReadingTime(post.body);
+function PostCard({ post }) {
   const category = post.categories?.[0];
-
   return (
-    <Link
-      to={`/blog/${post.slug.current}`}
-      className="group flex flex-col border border-mist rounded-lg overflow-hidden transition-colors duration-200 hover:border-ink/25"
-    >
+    <Link to={`/blog/${post.slug.current}`} className="group block">
       {post.mainImage ? (
-        <div className="overflow-hidden aspect-[4/3]">
+        <div className="overflow-hidden rounded-xl aspect-[4/3] mb-4">
           <img
-            src={urlForImage(post.mainImage) + '?w=800&h=600&fit=crop'}
+            src={urlForImage(post.mainImage) + '?w=700&h=525&fit=crop'}
             alt={post.title}
-            className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04]"
+            className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.05]"
           />
         </div>
       ) : (
-        <div className="aspect-[4/3] bg-paper" />
+        <div className="rounded-xl aspect-[4/3] mb-4 bg-mist/40" />
       )}
-      <div className="flex flex-col flex-1 p-5">
-        {category && (
-          <span className="text-[11px] font-semibold uppercase tracking-widest2 text-coral mb-2">
-            {category.title}
-          </span>
-        )}
-        <h3 className="text-base font-semibold text-ink leading-snug mb-2">{post.title}</h3>
-        {post.excerpt && (
-          <p className="text-sm text-slatey leading-relaxed mb-4 line-clamp-2">{post.excerpt}</p>
-        )}
-        <div className="mt-auto flex items-center justify-between pt-1">
-          <span className="text-xs text-slatey">
-            {formatDate(post.publishedAt)}
-            {readingTime ? ` · ${readingTime} min read` : ''}
-          </span>
-          <span className="text-xs font-medium text-ink inline-flex items-center gap-1 transition-transform duration-200 group-hover:translate-x-0.5">
-            Read <span aria-hidden="true">→</span>
-          </span>
-        </div>
-      </div>
-    </Link>
-  );
-}
-
-function FeaturedArticle({ post }) {
-  const readingTime = estimateReadingTime(post.body);
-  const category = post.categories?.[0];
-
-  return (
-    <Link
-      to={`/blog/${post.slug.current}`}
-      className="group grid gap-8 sm:grid-cols-2 items-center mb-16 sm:mb-20"
-    >
-      {post.mainImage ? (
-        <div className="overflow-hidden rounded-lg aspect-[4/3] sm:aspect-[16/12]">
-          <img
-            src={urlForImage(post.mainImage) + '?w=1200&h=900&fit=crop'}
-            alt={post.title}
-            className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]"
-          />
-        </div>
-      ) : (
-        <div className="rounded-lg aspect-[4/3] sm:aspect-[16/12] bg-paper" />
+      <p className="text-[11px] font-semibold uppercase tracking-widest2 text-slatey mb-2">
+        {category ? `${category.title} · ` : ''}
+        {formatDate(post.publishedAt)}
+      </p>
+      <h3 className="text-lg font-semibold text-ink leading-snug mb-2 group-hover:text-coral transition-colors">
+        {post.title}
+      </h3>
+      {post.excerpt && (
+        <p className="text-sm text-slatey leading-relaxed line-clamp-2">{post.excerpt}</p>
       )}
-      <div>
-        {category && (
-          <span className="text-[11px] font-semibold uppercase tracking-widest2 text-coral">
-            {category.title}
-          </span>
-        )}
-        <h2 className="mt-3 text-2xl sm:text-3xl font-bold text-ink leading-tight">
-          {post.title}
-        </h2>
-        {post.excerpt && <p className="mt-4 text-slatey leading-relaxed">{post.excerpt}</p>}
-        <p className="mt-4 text-sm text-slatey">
-          {formatDate(post.publishedAt)}
-          {readingTime ? ` · ${readingTime} min read` : ''}
-        </p>
-        <span className="mt-6 inline-flex items-center gap-1.5 text-sm font-semibold text-ink transition-transform duration-200 group-hover:translate-x-0.5">
-          Read article <span aria-hidden="true">→</span>
-        </span>
-      </div>
     </Link>
   );
 }
@@ -111,7 +53,9 @@ export default function BlogList() {
 
   const [posts, setPosts] = useState(null);
   const [categories, setCategories] = useState([]);
-  const [activeCategory, setActiveCategory] = useState('all');
+  const [activeCategory, setActiveCategory] = useState(null);
+  const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -125,14 +69,25 @@ export default function BlogList() {
 
   const filteredPosts = useMemo(() => {
     if (!posts) return [];
-    if (activeCategory === 'all') return posts;
-    return posts.filter((p) => p.categories?.some((c) => c.slug?.current === activeCategory));
-  }, [posts, activeCategory]);
+    let result = posts;
+    if (activeCategory) {
+      result = result.filter((p) => p.categories?.some((c) => c.slug?.current === activeCategory));
+    }
+    if (search.trim()) {
+      const q = search.trim().toLowerCase();
+      result = result.filter((p) => p.title?.toLowerCase().includes(q));
+    }
+    return result;
+  }, [posts, activeCategory, search]);
 
-  const [featured, ...rest] = filteredPosts;
+  const totalPages = Math.max(1, Math.ceil(filteredPosts.length / PAGE_SIZE));
+  const pagedPosts = filteredPosts.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const topPosts = (posts || []).slice(0, 5);
 
-  // Anchor sections (freebies/shop/contact) live on the homepage, so
-  // navigation from /blog goes there first, matching CareerReadinessPage.
+  useEffect(() => {
+    setPage(1);
+  }, [activeCategory, search]);
+
   const onNav = () => navigate('/');
   const signOut = async () => {
     await supabase.auth.signOut();
@@ -150,56 +105,94 @@ export default function BlogList() {
     <div className="relative min-h-screen overflow-x-hidden bg-paper">
       <Header onNav={onNav} onAuth={() => setAuthOpen(true)} user={user} onSignOut={signOut} />
 
-      <main className="pt-28">
-        {/* Hero */}
-        <section className="max-w-5xl mx-auto px-6 pb-10 sm:pb-14 text-center">
-          <p className="text-xs font-semibold uppercase tracking-widest2 text-coral mb-4">
-            Eteral Journal
+      {/* Page header bar */}
+      <div className="pt-24 border-b border-mist bg-white/60">
+        <div className="max-w-6xl mx-auto px-6 py-8 flex flex-wrap items-center justify-between gap-3">
+          <h1 className="text-2xl font-bold text-ink">Blog</h1>
+          <p className="text-xs text-slatey">
+            <Link to="/" className="hover:text-ink transition-colors">Home</Link>
+            <span className="mx-2">›</span>
+            <span className="text-ink font-medium">Blog</span>
           </p>
-          <h1 className="text-3xl sm:text-5xl font-bold text-ink leading-tight max-w-2xl mx-auto">
-            Build a career you're proud of.
-          </h1>
-          <p className="mt-4 text-slatey text-sm sm:text-base max-w-md mx-auto">
-            Practical career advice, strategies, and resources for students and early
-            professionals.
-          </p>
-        </section>
+        </div>
+      </div>
 
-        {/* Category nav */}
-        {categories.length > 0 && (
-          <nav
-            aria-label="Article categories"
-            className="max-w-5xl mx-auto px-6 mb-14 sm:mb-16 flex flex-wrap justify-center gap-2"
-          >
-            <button
-              type="button"
-              onClick={() => setActiveCategory('all')}
-              className={`text-sm px-4 py-2 rounded-full border transition-colors ${
-                activeCategory === 'all'
-                  ? 'bg-ink text-white border-ink'
-                  : 'border-mist text-slatey hover:border-ink/30 hover:text-ink'
-              }`}
-            >
-              All
-            </button>
-            {categories.map((cat) => (
-              <button
-                key={cat.slug.current}
-                type="button"
-                onClick={() => setActiveCategory(cat.slug.current)}
-                className={`text-sm px-4 py-2 rounded-full border transition-colors ${
-                  activeCategory === cat.slug.current
-                    ? 'bg-ink text-white border-ink'
-                    : 'border-mist text-slatey hover:border-ink/30 hover:text-ink'
-                }`}
-              >
-                {cat.title}
-              </button>
-            ))}
-          </nav>
-        )}
+      <main className="max-w-6xl mx-auto px-6 py-14 grid gap-12 lg:grid-cols-[260px_1fr]">
+        {/* Sidebar */}
+        <aside className="flex flex-col gap-10 order-2 lg:order-1">
+          {/* Search */}
+          <div className="relative">
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search…"
+              className="w-full rounded-lg border border-mist bg-white px-4 py-2.5 pr-10 text-sm text-ink placeholder:text-slatey/60 focus:outline-none focus:border-ink/30"
+            />
+            <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slatey" />
+          </div>
 
-        <div className="max-w-5xl mx-auto px-6 pb-24">
+          {/* Categories */}
+          {categories.length > 0 && (
+            <div className="rounded-xl border border-mist bg-white p-5">
+              <h2 className="text-base font-semibold text-ink mb-3">Categories</h2>
+              <ul>
+                <li>
+                  <button
+                    type="button"
+                    onClick={() => setActiveCategory(null)}
+                    className={`w-full text-left text-sm py-2 border-b border-mist last:border-0 transition-colors ${
+                      activeCategory === null ? 'text-coral font-medium' : 'text-slatey hover:text-ink'
+                    }`}
+                  >
+                    All
+                  </button>
+                </li>
+                {categories.map((cat) => (
+                  <li key={cat.slug.current}>
+                    <button
+                      type="button"
+                      onClick={() => setActiveCategory(cat.slug.current)}
+                      className={`w-full text-left text-sm py-2 border-b border-mist last:border-0 transition-colors ${
+                        activeCategory === cat.slug.current
+                          ? 'text-coral font-medium'
+                          : 'text-slatey hover:text-ink'
+                      }`}
+                    >
+                      {cat.title}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Top posts */}
+          {topPosts.length > 0 && (
+            <div className="rounded-xl border border-mist bg-white p-5">
+              <h2 className="text-base font-semibold text-ink mb-4">Top Posts</h2>
+              <ol className="flex flex-col gap-4">
+                {topPosts.map((post, i) => (
+                  <li key={post._id} className="flex gap-3">
+                    <span className="text-lg font-bold text-mist leading-none">{i + 1}</span>
+                    <Link to={`/blog/${post.slug.current}`} className="group">
+                      <p className="text-sm font-medium text-ink leading-snug group-hover:text-coral transition-colors">
+                        {post.title}
+                      </p>
+                      <p className="text-[11px] text-slatey mt-1 uppercase tracking-widest2">
+                        {post.categories?.[0]?.title ? `${post.categories[0].title} · ` : ''}
+                        {formatDate(post.publishedAt)}
+                      </p>
+                    </Link>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          )}
+        </aside>
+
+        {/* Post grid */}
+        <div className="order-1 lg:order-2">
           {error && <p className="text-center text-slatey py-20">Couldn't load posts right now.</p>}
 
           {!error && posts === null && (
@@ -209,20 +202,43 @@ export default function BlogList() {
           )}
 
           {!error && posts !== null && filteredPosts.length === 0 && (
-            <p className="text-center text-slatey py-20">No posts in this category yet.</p>
+            <p className="text-center text-slatey py-20">No posts found.</p>
           )}
 
-          {!error && featured && <FeaturedArticle post={featured} />}
+          {pagedPosts.length > 0 && (
+            <div className="grid gap-x-8 gap-y-12 sm:grid-cols-2">
+              {pagedPosts.map((post) => (
+                <PostCard key={post._id} post={post} />
+              ))}
+            </div>
+          )}
 
-          {rest.length > 0 && (
-            <>
-              <h2 className="text-xl font-bold text-ink mb-6">Latest from Eteral</h2>
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {rest.map((post) => (
-                  <ArticleCard key={post._id} post={post} />
-                ))}
-              </div>
-            </>
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center gap-2 mt-14">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
+                <button
+                  key={n}
+                  type="button"
+                  onClick={() => setPage(n)}
+                  className={`h-9 w-9 rounded-lg text-sm font-medium transition-colors ${
+                    page === n ? 'bg-coral text-white' : 'bg-white border border-mist text-slatey hover:text-ink'
+                  }`}
+                >
+                  {n}
+                </button>
+              ))}
+              {page < totalPages && (
+                <button
+                  type="button"
+                  onClick={() => setPage((p) => p + 1)}
+                  className="h-9 w-9 rounded-lg bg-white border border-mist text-slatey hover:text-ink flex items-center justify-center"
+                  aria-label="Next page"
+                >
+                  ›
+                </button>
+              )}
+            </div>
           )}
         </div>
       </main>

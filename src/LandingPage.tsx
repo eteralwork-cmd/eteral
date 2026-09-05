@@ -29,6 +29,16 @@ import BlogPost from './features/blog/BlogPost.jsx';
 import { sanityClient, urlForImage } from './features/blog/sanityClient.js';
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsAndConditions from "./pages/TermsAndConditions";
+import MembershipPricingPage from "./pages/MembershipPricing";
+import LoginPage from "./pages/Login";
+import PaymentSuccess from "./pages/PaymentSuccess";
+import PaymentCancelled from "./pages/PaymentCancelled";
+import Dashboard from "./pages/Dashboard";
+import Projects from "./pages/Projects";
+import Applications from "./pages/Applications";
+import ResumeResources from "./pages/ResumeResources";
+import ProtectedRoute from "./lib/ProtectedRoute";
+import { useMembership } from "./lib/membership";
 import logo from "./assets/eteral_symbol.png"; // adjust path to wherever it lives in assets
 
 
@@ -215,11 +225,13 @@ export function Header({
   }, []);
 
   const navigate = useNavigate();
+  const { isStandard } = useMembership();
 
   const nav = [
     { label: 'Home', id: 'home' },
     { label: 'Freebies', id: 'freebies' },
     { label: 'Membership', id: 'membership', path: '/membership' },
+    ...(isStandard ? [{ label: 'Dashboard', id: 'dashboard', path: '/dashboard' }] : []),
     { label: 'Contact', id: 'contact' },
   ];
 
@@ -255,6 +267,14 @@ export function Header({
         <div className="hidden md:flex items-center gap-3">
           {user ? (
             <div className="flex items-center gap-3">
+              {isStandard && (
+                <button
+                  onClick={() => navigate('/dashboard')}
+                  className="text-xs font-medium text-coral hover:text-ink transition-colors"
+                >
+                  Dashboard
+                </button>
+              )}
               <span className="text-xs text-slatey max-w-[12rem] truncate">
                 {user.email}
               </span>
@@ -1079,110 +1099,25 @@ function CareerReadinessPage() {
     </div>
   );
 }
-function MembershipPage() {
-  const navigate = useNavigate();
-  const { user, loading } = useAuth();
-  const [authOpen, setAuthOpen] = useState(false);
-
-  const onNav = () => {
-    navigate('/');
-  };
-
-  const signOut = async () => {
-    await supabase.auth.signOut();
-  };
-
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-slatey" />
-      </div>
-    );
-  }
-
-  return (
-    <div className="relative min-h-screen overflow-x-hidden">
-      <Header onNav={onNav} onAuth={() => setAuthOpen(true)} user={user} onSignOut={signOut} />
-
-      <main className="pt-32 pb-24">
-        <div className="mx-auto max-w-3xl px-6">
-          <button
-            onClick={() => navigate('/')}
-            className="text-sm font-medium text-slatey hover:text-ink transition-colors"
-          >
-            ← Back to Eteral
-          </button>
-
-          <div className="mt-8 text-center">
-            <span className="text-xs font-semibold uppercase tracking-widest text-coral">
-              Membership
-            </span>
-            <h1 className="mt-3 text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
-              The job search doesn't end at the offer letter.
-            </h1>
-            <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-slatey">
-              We're built for the whole arc — from first interview to first promotion.
-              Here's what that actually looks like.
-            </p>
-          </div>
-        </div>
-
-        <div className="mx-auto mt-16 max-w-5xl px-6">
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-            {MEMBERSHIP_STAGES.map((stage, i) => (
-              <div
-                key={stage.title}
-                className="rounded-2xl border border-mist bg-white p-7"
-              >
-                <span className="text-xs font-semibold text-slatey">Stage {i + 1}</span>
-                <p className="mt-1 text-xs font-semibold uppercase tracking-widest2 text-coral">
-                  {stage.label}
-                </p>
-                <h2 className="mt-3 text-xl font-semibold text-ink">{stage.title}</h2>
-                <p className="mt-3 text-sm leading-relaxed text-slatey">{stage.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="mx-auto mt-20 max-w-2xl px-6 text-center">
-          <h2 className="text-2xl font-semibold text-ink">Why membership, not one-off tools</h2>
-          <p className="mt-4 text-base leading-relaxed text-slatey">
-            Most career resources solve one moment — a resume, one interview, one negotiation —
-            then leave you on your own for what comes next. Eteral stays with you through the
-            entire arc, so you're never rebuilding your prep from scratch at the next stage.
-          </p>
-        </div>
-
-        <div className="mt-14 flex justify-center px-6">
-          <PrimaryButton onClick={() => setAuthOpen(true)}>
-            Join Eteral
-            <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
-          </PrimaryButton>
-        </div>
-      </main>
-
-      <Footer onNav={onNav} />
-      <AuthModal
-        open={authOpen}
-        onClose={() => setAuthOpen(false)}
-        initialMode="signup"
-        onSuccess={() => setAuthOpen(false)}
-      />
-    </div>
-  );
-}
-
 export default function App() {
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
       <Route path="/career-readiness" element={<CareerReadinessPage />} />
-      <Route path="/membership" element={<MembershipPage />} />
+      <Route path="/membership" element={<MembershipPricingPage />} />
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/payment/success" element={<PaymentSuccess />} />
+      <Route path="/payment/cancelled" element={<PaymentCancelled />} />
       <Route path="/blog" element={<BlogList />} />
       <Route path="/blog/:slug" element={<BlogPost />} />
       <Route path="/privacy-policy" element={<PrivacyPolicy />} />
       <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
+
+      {/* Standard-protected routes */}
+      <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+      <Route path="/projects" element={<ProtectedRoute><Projects /></ProtectedRoute>} />
+      <Route path="/applications" element={<ProtectedRoute><Applications /></ProtectedRoute>} />
+      <Route path="/standard/resume" element={<ProtectedRoute><ResumeResources /></ProtectedRoute>} />
     </Routes>
   );
 }

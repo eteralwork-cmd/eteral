@@ -17,8 +17,8 @@ export type MembershipStatus =
 export type MembershipData = {
   plan: MembershipPlan;
   status: MembershipStatus;
-  stripe_customer_id: string | null;
-  stripe_subscription_id: string | null;
+  payment_customer_id: string | null;
+  payment_subscription_id: string | null;
   current_period_start: string | null;
   current_period_end: string | null;
   cancel_at_period_end: boolean;
@@ -54,7 +54,7 @@ export function MembershipProvider({ children }: { children: ReactNode }) {
   const fetchMembership = useCallback(async (uid: string) => {
     const { data, error } = await supabase
       .from('memberships')
-      .select('plan, status, stripe_customer_id, stripe_subscription_id, current_period_start, current_period_end, cancel_at_period_end')
+      .select('plan, status, payment_customer_id, payment_subscription_id, current_period_start, current_period_end, cancel_at_period_end')
       .eq('user_id', uid)
       .maybeSingle();
 

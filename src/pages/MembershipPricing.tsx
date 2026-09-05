@@ -4,7 +4,7 @@ import { ArrowLeft, ArrowRight, Check, Loader2, Sparkles, Lock } from 'lucide-re
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
 import { useMembership } from '@/lib/membership';
-import { createCheckoutSession, createPortalSession } from '@/lib/stripe-client';
+import { startCheckout, cancelSubscription } from '@/lib/razorpay-client';
 
 const FREE_FEATURES = [
   'Full access to Eteral blog & articles',
@@ -27,7 +27,7 @@ export default function MembershipPricingPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, loading: authLoading } = useAuth();
-  const { isStandard, plan, status, loading: membershipLoading } = useMembership();
+  const { isStandard, plan, status, loading: membershipLoading, refresh } = useMembership();
   const [authOpen, setAuthOpen] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [portalLoading, setPortalLoading] = useState(false);
@@ -66,22 +66,28 @@ export default function MembershipPricingPage() {
     setError(null);
     setCheckoutLoading(true);
     try {
-      const { url } = await createCheckoutSession();
-      window.location.href = url;
+      await startCheckout(navigate);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
+    } finally {
       setCheckoutLoading(false);
     }
   };
 
   const handlePortal = async () => {
+    const confirmed = window.confirm(
+      "Cancel your membership? You'll keep access until the end of your current billing period."
+    );
+    if (!confirmed) return;
+
     setError(null);
     setPortalLoading(true);
     try {
-      const { url } = await createPortalSession();
-      window.location.href = url;
+      await cancelSubscription();
+      await refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not open billing portal.');
+      setError(err instanceof Error ? err.message : 'Could not cancel membership.');
+    } finally {
       setPortalLoading(false);
     }
   };

@@ -60,7 +60,7 @@ export default function PaymentSuccess() {
               </div>
               <h1 className="mt-6 text-2xl font-semibold text-ink">Confirming your payment...</h1>
               <p className="mt-3 text-sm leading-relaxed text-slatey">
-                We're verifying your payment with Stripe. This usually takes a few seconds.
+                We're verifying your payment with Razorpay. This usually takes a few seconds.
                 You'll get access automatically once it's confirmed.
               </p>
               <Loader2 className="h-5 w-5 animate-spin text-slatey mx-auto mt-6" />

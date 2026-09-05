@@ -29,6 +29,8 @@ import BlogPost from './features/blog/BlogPost.jsx';
 import { sanityClient, urlForImage } from './features/blog/sanityClient.js';
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsAndConditions from "./pages/TermsAndConditions";
+import logo from "./assets/eteral_symbol.png"; // adjust path to wherever it lives in assets
+
 
 
 
@@ -75,35 +77,14 @@ function triggerDownload(url: string, filename?: string) {
 /* ------------------------------------------------------------------ */
 /*  Logo mark — abstract interlocking "e"                             */
 /* ------------------------------------------------------------------ */
-function LogoMark({ className = 'h-8 w-8' }: { className?: string }) {
+function LogoMark({ className = "h-8 w-8" }: { className?: string }) {
   return (
-    <svg viewBox="0 0 40 40" className={className} fill="none" aria-hidden="true">
-      <defs>
-        <linearGradient id="coralG" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#F5A3A0" />
-          <stop offset="100%" stopColor="#EF8A86" />
-        </linearGradient>
-
-        <linearGradient id="skyG" x1="0" y1="1" x2="1" y2="0">
-          <stop offset="0%" stopColor="#9CC4F0" />
-          <stop offset="100%" stopColor="#7FB0EC" />
-        </linearGradient>
-      </defs>
-      <path
-        d="M28 12.5C24.5 9.5 19 9 14.5 11.5 9.5 14.3 8 20.5 10.5 25.5 13 30.5 19 32.5 24.5 30.5 27 29.5 29 28 30 26"
-        stroke="url(#coralG)"
-        strokeWidth="3.4"
-        strokeLinecap="round"
-        fill="none"
-      />
-      <path
-        d="M13 20.5H28"
-        stroke="url(#skyG)"
-        strokeWidth="3.4"
-        strokeLinecap="round"
-        fill="none"
-      />
-    </svg>
+    <img
+      src={logo}
+      alt=""
+      aria-hidden="true"
+      className={`${className} object-contain`}
+    />
   );
 }
 
@@ -120,7 +101,7 @@ function Logo({ onNav }: { onNav: (id: string) => void }) {
           eteral
         </span>
         <span className="text-[0.5rem] font-medium tracking-widest2 text-slatey uppercase mt-0.5">
-          Digital Products and Tools
+          Grow in it
         </span>
       </div>
     </button>
@@ -233,12 +214,22 @@ export function Header({
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
+  const navigate = useNavigate();
+
   const nav = [
     { label: 'Home', id: 'home' },
     { label: 'Freebies', id: 'freebies' },
-    { label: 'Shop', id: 'shop' },
+    { label: 'Membership', id: 'membership', path: '/membership' },
     { label: 'Contact', id: 'contact' },
   ];
+
+  const handleNavClick = (n: { id: string; path?: string }) => {
+    if (n.path) {
+      navigate(n.path);
+    } else {
+      onNav(n.id);
+    }
+  };
 
   return (
     <header
@@ -254,7 +245,7 @@ export function Header({
           {nav.map((n) => (
             <button
               key={n.id}
-              onClick={() => onNav(n.id)}
+              onClick={() => handleNavClick(n)}
               className="text-sm font-medium text-slatey transition-colors duration-200 hover:text-ink"
             >
               {n.label}
@@ -309,7 +300,7 @@ export function Header({
             <button
               key={n.id}
               onClick={() => {
-                onNav(n.id);
+                handleNavClick(n);
                 setMenuOpen(false);
               }}
               className="text-left py-3 text-sm font-medium text-slatey hover:text-ink border-b border-mist/50 last:border-0"
@@ -348,6 +339,7 @@ export function Header({
 /*  Hero                                                               */
 /* ------------------------------------------------------------------ */
 function Hero({ onNav }: { onNav: (id: string) => void }) {
+  const navigate = useNavigate();
   return (
     <section id="home" className="relative overflow-hidden pt-36 pb-24 lg:pt-48 lg:pb-32">
       <div className="pointer-events-none absolute inset-0 -z-10">
@@ -358,29 +350,30 @@ function Hero({ onNav }: { onNav: (id: string) => void }) {
       <div className="mx-auto max-w-4xl px-6 text-center">
         <div className="reveal is-visible inline-flex items-center gap-2 rounded-full border border-mist bg-white/50 px-4 py-1.5 text-xs font-medium tracking-wide text-slatey backdrop-blur-sm">
           <Sparkles className="h-3.5 w-3.5 text-coral" />
-          New — Free starter bundle available now
+          Eteral Membership — now open
         </div>
 
         <h1 className="mt-8 text-4xl font-semibold leading-[1.1] tracking-tight text-ink sm:text-5xl lg:text-6xl">
-          Tools to help you get Started,
+          The job search doesn't end
           <br />
-          focus, and <span className="text-gradient">get more done</span>.
+          at the <span className="text-gradient">offer letter</span>.
         </h1>
 
         <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-slatey sm:text-lg">
-          Calm, well-made tools to help you land the job, find your path, or start something of your own — without the overwhelm.
+          We're built for the whole arc — from first interview to first promotion.
+          One membership, every stage of your early career covered.
         </p>
 
         <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-          <PrimaryButton onClick={() => onNav('freebies')}>
-            Get the Free Bundle
+          <PrimaryButton onClick={() => navigate('/membership')}>
+            Join Eteral
             <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
           </PrimaryButton>
-          <GhostButton onClick={() => onNav('shop')}>Browse Products</GhostButton>
+          <GhostButton onClick={() => onNav('freebies')}>Get the Free Bundle</GhostButton>
         </div>
 
         <p className="mt-6 text-xs tracking-wide text-slatey/70">
-          No credit card. No spam. Just useful things.
+          Start free. Upgrade when you're ready.
         </p>
       </div>
     </section>
@@ -550,83 +543,112 @@ function Freebies({
           </div>
         )}
 
-        <div className="mt-14 flex flex-col items-center gap-4 rounded-2xl border border-mist bg-white/40 px-6 py-8 text-center backdrop-blur-sm sm:flex-row sm:justify-between sm:text-left">
-          <div>
-            <h3 className="text-lg font-semibold text-ink">
-              Not sure where to start?
+        <Link
+          to="./career-readiness/"
+          className="group relative mt-14 flex flex-col items-center gap-5 overflow-hidden rounded-2xl border border-coral/30 bg-gradient-to-br from-coral/10 via-white to-sky/10 px-6 py-10 text-center transition-all duration-300 hover:border-coral/50 hover:shadow-[0_20px_60px_-20px_rgba(255,107,107,0.35)] sm:flex-row sm:justify-between sm:text-left sm:py-8"
+        >
+          <div className="pointer-events-none absolute -top-10 -right-10 h-40 w-40 rounded-full bg-coral/20 blur-3xl transition-opacity duration-300 group-hover:opacity-80" />
+ 
+          <div className="relative">
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-coral/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-widest2 text-coral">
+              <Sparkles className="h-3 w-3" />
+              Free · 30 seconds
+            </div>
+            <h3 className="mt-3 text-xl font-semibold text-ink sm:text-2xl">
+              How career-ready are you, really?
             </h3>
-            <p className="mt-1 text-sm text-slatey">
-              Take the 30-second quiz and we'll point you to the right tool.
+            <p className="mt-2 text-sm text-slatey">
+              Answer a few quick questions and get a personalized readiness score —
+              plus exactly which tool to use first.
             </p>
           </div>
-          <Link to="/career-readiness" className="shrink-0">
-            <GhostButton>
-              Career Readiness Check
-              <ArrowRight className="h-4 w-4" />
-            </GhostButton>
-          </Link>
-        </div>
+ 
+          <div className="relative shrink-0">
+            <span className="inline-flex items-center gap-2 rounded-xl bg-ink px-6 py-3.5 text-sm font-semibold text-white transition-transform duration-300 group-hover:scale-[1.04] group-hover:gap-3">
+              Take the Quiz
+              <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
+            </span>
+          </div>
+        </Link>
       </div>
     </section>
   );
 }
 
-/* ------------------------------------------------------------------ */
-/*  Quiz modal                                                         */
-/*  ⤓ REPLACE: refine quiz questions/logic & recommendation mapping.  */
-/* ------------------------------------------------------------------ */
-type QuizOption = { label: string; segment: 'student' | 'hustler' | 'habit' };
-type QuizQuestion = { q: string; options: QuizOption[] };
 
-const QUIZ: QuizQuestion[] = [
+/*  Membership section                                                 */
+/*  ⤓ REPLACE: swap placeholder tiers once pricing/billing is live.   */
+/* ------------------------------------------------------------------ */
+
+type MembershipStage = {
+  label: string;
+  title: string;
+  desc: string;
+};
+
+const MEMBERSHIP_STAGES: MembershipStage[] = [
   {
-    q: 'What brings you here today?',
-    options: [
-      { label: 'Studying for school or uni', segment: 'student' },
-      { label: 'Building a side income', segment: 'hustler' },
-      { label: 'Getting more organized', segment: 'habit' },
-    ],
+    label: 'Before the offer',
+    title: 'Land the interview',
+    desc: 'Resume, portfolio, and outreach built to actually get a response.',
   },
   {
-    q: 'Where do you feel most stuck?',
-    options: [
-      { label: 'Keeping up with deadlines', segment: 'student' },
-      { label: 'Tracking money coming in', segment: 'hustler' },
-      { label: 'Staying focused day to day', segment: 'habit' },
-    ],
+    label: 'Getting the offer',
+    title: 'Win the interview',
+    desc: 'Structured prep, mock interviews, and negotiation guidance.',
   },
   {
-    q: 'Pick the outcome you want most:',
-    options: [
-      { label: 'Better grades with less stress', segment: 'student' },
-      { label: 'A clearer view of my income', segment: 'hustler' },
-      { label: 'A calmer, more focused routine', segment: 'habit' },
-    ],
+    label: 'After the offer',
+    title: 'Grow into the role',
+    desc: 'Onboarding playbooks, performance habits, and a path to your first promotion.',
   },
 ];
 
-const RECS: Record<QuizOption['segment'], { title: string; desc: string; cta: string }> = {
-  student: {
-    title: 'Start with the Study Checklist',
-    desc: 'A simple term-long checklist to keep every deadline visible and off your mind.',
-    cta: 'Get the Study Checklist',
-  },
-  hustler: {
-    title: 'Start with the Income Tracker',
-    desc: 'Log every bit of side income in one place and see what actually adds up.',
-    cta: 'Get the Income Tracker',
-  },
-  habit: {
-    title: 'Start with the Focus Tracker',
-    desc: 'Measure deep-work sessions and find the hours where you do your best work.',
-    cta: 'Get the Focus Tracker',
-  },
-};
+function Membership() {
+  const ref = useReveal<HTMLDivElement>();
+  const navigate = useNavigate();
 
-/* ------------------------------------------------------------------ */
-/*  Shop section                                                       */
-/*  ⤓ REPLACE: swap placeholder products with real Payhip listings.  */
-/* ------------------------------------------------------------------ */
+  return (
+    <section id="membership" className="py-20 lg:py-28 bg-white/40">
+      <div className="mx-auto max-w-6xl px-6">
+        <div ref={ref} className="reveal max-w-2xl">
+          <span className="text-xs font-semibold uppercase tracking-widest text-coral">
+            Membership
+          </span>
+          <h2 className="mt-3 text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
+            Built for the whole arc.
+          </h2>
+          <p className="mt-4 text-base leading-relaxed text-slatey">
+            The job search doesn't end at the offer letter — and neither do we.
+            One membership that covers first interview through first promotion.
+          </p>
+        </div>
+
+        <div className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-3">
+          {MEMBERSHIP_STAGES.map((stage) => (
+            <div
+              key={stage.title}
+              className="rounded-2xl border border-mist bg-white p-6 transition-colors duration-200 hover:border-ink/20"
+            >
+              <span className="text-xs font-semibold uppercase tracking-widest2 text-coral">
+                {stage.label}
+              </span>
+              <h3 className="mt-3 text-lg font-semibold text-ink">{stage.title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-slatey">{stage.desc}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-10 flex justify-center">
+          <PrimaryButton onClick={() => navigate('/membership')}>
+            Learn about Membership
+            <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
+          </PrimaryButton>
+        </div>
+      </div>
+    </section>
+  );
+}
 
 
 type BlogPost = {
@@ -638,7 +660,7 @@ type BlogPost = {
   publishedAt: string;
 };
 
-const LATEST_POST_QUERY = `*[_type == "post"] | order(publishedAt desc)[0]{
+const LATEST_POSTS_QUERY = `*[_type == "post"] | order(publishedAt desc)[0...3]{
   _id,
   title,
   slug,
@@ -713,7 +735,7 @@ function BlogCardSkeleton() {
 
 function Blog() {
   const ref = useReveal<HTMLDivElement>();
-  const [post, setPost] = useState<BlogPost | null>(null);
+  const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
@@ -721,9 +743,9 @@ function Blog() {
     let cancelled = false;
 
     sanityClient
-      .fetch<BlogPost>(LATEST_POST_QUERY)
-      .then((data: BlogPost) => {
-        if (!cancelled) setPost(data);
+      .fetch<BlogPost[]>(LATEST_POSTS_QUERY)
+      .then((data: BlogPost[]) => {
+        if (!cancelled) setPosts(data || []);
       })
       .catch(() => {
         if (!cancelled) setError(true);
@@ -754,16 +776,24 @@ function Blog() {
         </div>
 
         <div className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {loading && <BlogCardSkeleton />}
+          {loading && (
+            <>
+              <BlogCardSkeleton />
+              <BlogCardSkeleton />
+              <BlogCardSkeleton />
+            </>
+          )}
           {!loading && error && (
             <p className="text-sm text-slatey">
-              Couldn't load the latest post right now.
+              Couldn't load the latest posts right now.
             </p>
           )}
-          {!loading && !error && !post && (
+          {!loading && !error && posts.length === 0 && (
             <p className="text-sm text-slatey">No posts yet — check back soon.</p>
           )}
-          {!loading && !error && post && <BlogCard post={post} />}
+          {!loading &&
+            !error &&
+            posts.map((post) => <BlogCard key={post._id} post={post} />)}
         </div>
       </div>
     </section>
@@ -776,9 +806,9 @@ function Blog() {
 function Trust() {
   const ref = useReveal<HTMLDivElement>();
   const stats = [
-    { value: '98+', label: 'Students & creators' },
-    { value: '4.9', label: 'Average rating' },
-    { value: '150+', label: 'Downloads' },
+    { value: '98+', label: 'Students & Workers' },
+    { value: '4.8', label: 'Average rating' },
+    { value: '68+', label: 'Members' },
   ];
   return (
     <section className="py-12">
@@ -826,7 +856,7 @@ export function Footer({ onNav }: { onNav: (id: string) => void }) {
 
   const links = [
   { label: 'Freebies', id: 'freebies', type: 'scroll' },
-  { label: 'Shop', id: 'shop', type: 'scroll' },
+  { label: 'Membership', path: '/membership', type: 'route' },
   { label: 'Contact', id: 'contact', type: 'scroll' },
   { label: 'Privacy Policy', path: '/privacy-policy', type: 'route' },
   { label: 'Terms', path: '/terms-and-conditions', type: 'route' },
@@ -989,6 +1019,8 @@ function LandingPage() {
    <main>
         <Hero onNav={onNav} />
         <Freebies onNav={onNav} onRequireAuth={requireAuthForFreebie} />
+        <Membership />
+        <Blog />
         <Trust />
       </main>
       <Footer onNav={onNav} />
@@ -1047,11 +1079,106 @@ function CareerReadinessPage() {
     </div>
   );
 }
+function MembershipPage() {
+  const navigate = useNavigate();
+  const { user, loading } = useAuth();
+  const [authOpen, setAuthOpen] = useState(false);
+
+  const onNav = () => {
+    navigate('/');
+  };
+
+  const signOut = async () => {
+    await supabase.auth.signOut();
+  };
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-slatey" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative min-h-screen overflow-x-hidden">
+      <Header onNav={onNav} onAuth={() => setAuthOpen(true)} user={user} onSignOut={signOut} />
+
+      <main className="pt-32 pb-24">
+        <div className="mx-auto max-w-3xl px-6">
+          <button
+            onClick={() => navigate('/')}
+            className="text-sm font-medium text-slatey hover:text-ink transition-colors"
+          >
+            ← Back to Eteral
+          </button>
+
+          <div className="mt-8 text-center">
+            <span className="text-xs font-semibold uppercase tracking-widest text-coral">
+              Membership
+            </span>
+            <h1 className="mt-3 text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
+              The job search doesn't end at the offer letter.
+            </h1>
+            <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-slatey">
+              We're built for the whole arc — from first interview to first promotion.
+              Here's what that actually looks like.
+            </p>
+          </div>
+        </div>
+
+        <div className="mx-auto mt-16 max-w-5xl px-6">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+            {MEMBERSHIP_STAGES.map((stage, i) => (
+              <div
+                key={stage.title}
+                className="rounded-2xl border border-mist bg-white p-7"
+              >
+                <span className="text-xs font-semibold text-slatey">Stage {i + 1}</span>
+                <p className="mt-1 text-xs font-semibold uppercase tracking-widest2 text-coral">
+                  {stage.label}
+                </p>
+                <h2 className="mt-3 text-xl font-semibold text-ink">{stage.title}</h2>
+                <p className="mt-3 text-sm leading-relaxed text-slatey">{stage.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="mx-auto mt-20 max-w-2xl px-6 text-center">
+          <h2 className="text-2xl font-semibold text-ink">Why membership, not one-off tools</h2>
+          <p className="mt-4 text-base leading-relaxed text-slatey">
+            Most career resources solve one moment — a resume, one interview, one negotiation —
+            then leave you on your own for what comes next. Eteral stays with you through the
+            entire arc, so you're never rebuilding your prep from scratch at the next stage.
+          </p>
+        </div>
+
+        <div className="mt-14 flex justify-center px-6">
+          <PrimaryButton onClick={() => setAuthOpen(true)}>
+            Join Eteral
+            <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
+          </PrimaryButton>
+        </div>
+      </main>
+
+      <Footer onNav={onNav} />
+      <AuthModal
+        open={authOpen}
+        onClose={() => setAuthOpen(false)}
+        initialMode="signup"
+        onSuccess={() => setAuthOpen(false)}
+      />
+    </div>
+  );
+}
+
 export default function App() {
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
       <Route path="/career-readiness" element={<CareerReadinessPage />} />
+      <Route path="/membership" element={<MembershipPage />} />
       <Route path="/blog" element={<BlogList />} />
       <Route path="/blog/:slug" element={<BlogPost />} />
       <Route path="/privacy-policy" element={<PrivacyPolicy />} />

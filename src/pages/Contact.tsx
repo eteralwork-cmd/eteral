@@ -48,7 +48,7 @@ export default function Contact() {
             <p style={styles.p}>
               Questions about your subscription, renewals, or a charge — see
               our{" "}
-              <a href="/cancellation-refund" style={styles.inlineLink}>
+              <a href="/refund-and-cancellation" style={styles.inlineLink}>
                 Cancellation & Refund Policy
               </a>{" "}
               or email us directly.

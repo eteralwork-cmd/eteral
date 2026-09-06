@@ -263,7 +263,7 @@ export default function PrivacyPolicy() {
           <Section id="contact" number="11" title="Contact us">
             <p style={styles.p}>Questions about this policy? Reach us at:</p>
             <p style={styles.p}>
-              Email: <Placeholder>insert contact email</Placeholder>
+              Email: <Placeholder>eteralwork@gmail.com</Placeholder>
               <br />
               Website:{" "}
               <a href="https://eteralwork.com" style={styles.inlineLink}>

@@ -243,7 +243,7 @@ export default function TermsAndConditions() {
           <Section id="contact" number="12" title="Contact us">
             <p style={styles.p}>Questions about these Terms? Reach us at:</p>
             <p style={styles.p}>
-              Email: <Placeholder>insert contact email</Placeholder>
+              Email: <Placeholder>eteralwork@gmail.com</Placeholder>
               <br />
               Website:{" "}
               <a href="https://eteralwork.com" style={styles.inlineLink}>

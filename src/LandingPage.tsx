@@ -41,6 +41,7 @@ import ProtectedRoute from "./lib/ProtectedRoute";
 import { useMembership } from "./lib/membership";
 import logo from "./assets/eteral_symbol.png"; // adjust path to wherever it lives in assets
 import RefundAndCancellation from "./pages/RefundAndCancellation";
+import Contact from "./pages/Contact";
 
 
 
@@ -879,8 +880,9 @@ export function Footer({ onNav }: { onNav: (id: string) => void }) {
   { label: 'Membership', path: '/membership', type: 'route' },
   { label: 'Contact', id: 'contact', type: 'scroll' },
   { label: 'Privacy Policy', path: '/privacy-policy', type: 'route' },
-  { label: 'Terms', path: '/terms-and-conditions', type: 'route' },
-  { label: 'refund', path: '/refund-and-cancellation', type: 'route'}
+  { label: 'Terms and Condition', path: '/terms-and-conditions', type: 'route' },
+  { label: 'Refund and Cancellation', path: '/refund-and-cancellation', type: 'route'},
+  {label: 'Contact Eteral', path: '/contact-eteral', type: 'route'}
 ];
 
   return (
@@ -1113,6 +1115,7 @@ export default function App() {
       <Route path="/privacy-policy" element={<PrivacyPolicy />} />
       <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
       <Route path="/refund-and-cancellation" element={<RefundAndCancellation />} />
+      <Route path="/contact-eteral" element={<Contact />} />
       {/* Standard-protected routes */}
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/projects" element={<ProtectedRoute><Projects /></ProtectedRoute>} />

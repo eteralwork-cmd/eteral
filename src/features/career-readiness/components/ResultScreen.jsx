@@ -1,5 +1,114 @@
 import { CATEGORIES } from "../data/categories.js";
 import CategoryBar from "./CategoryBar.jsx";
+import { Link } from "react-router-dom";
+import { ArrowRight, FileText, FolderKanban, Briefcase, Sparkles } from "lucide-react";
+
+const CATEGORY_TO_TOOL = {
+  resumeReadiness: {
+    icon: FileText,
+    title: "Resume Resources & ATS Templates",
+    desc: "Get ATS-friendly templates, checklists, and step-by-step resume-building guidance tailored to your target roles.",
+  },
+  portfolioReadiness: {
+    icon: FolderKanban,
+    title: "Project Tracker",
+    desc: "Plan, build, and document projects that fill your portfolio gaps — so employers can see proof of your skills.",
+  },
+  jobSearchReadiness: {
+    icon: Briefcase,
+    title: "Application Tracker",
+    desc: "Track every application from saved to offered, so your job search stays organized and consistent.",
+  },
+  organization: {
+    icon: FolderKanban,
+    title: "Project Tracker + Dashboard",
+    desc: "Set goals, track progress, and follow through on your career prep with a system that keeps you accountable.",
+  },
+  skillReadiness: {
+    icon: Sparkles,
+    title: "Resume Resources + Project Tracker",
+    desc: "Turn studied skills into applied ones. Build projects that prove your skills and tailor your resume to highlight them.",
+  },
+  interviewReadiness: {
+    icon: FileText,
+    title: "Resume Resources",
+    desc: "Prepare specific, outcome-driven bullet points that become your interview talking points and practiced examples.",
+  },
+  careerClarity: {
+    icon: Sparkles,
+    title: "Standard Member Dashboard",
+    desc: "Get stage-specific career questions and resources that help you narrow your direction and act on it.",
+  },
+  professionalPresence: {
+    icon: FileText,
+    title: "Resume Resources",
+    desc: "Build a resume and professional narrative that's consistent across LinkedIn, applications, and recruiter outreach.",
+  },
+  professionalGrowth: {
+    icon: Briefcase,
+    title: "Application Tracker + Dashboard",
+    desc: "Track your networking outreach and feedback loops alongside your applications, so growth stays intentional.",
+  },
+};
+
+function MembershipUpsell({ weaknesses }) {
+  const relevantTools = [];
+  const seen = new Set();
+
+  for (const w of weaknesses) {
+    const tool = CATEGORY_TO_TOOL[w.id];
+    if (tool && !seen.has(tool.title)) {
+      seen.add(tool.title);
+      relevantTools.push(tool);
+    }
+  }
+
+  return (
+    <section className="mb-8 rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-50 to-white p-6 sm:p-7">
+      <div className="flex items-center gap-2 mb-2">
+        <Sparkles className="h-4 w-4 text-indigo-600" />
+        <span className="text-xs font-semibold uppercase tracking-wide text-indigo-600">
+          Eteral Standard Membership
+        </span>
+      </div>
+      <h2 className="text-lg font-semibold text-slate-900 mb-2">
+        Close your gaps with the right tools
+      </h2>
+      <p className="text-sm text-slate-600 mb-5 max-w-md">
+        Your results show where you stand today. Standard membership gives you the tools to
+        systematically improve each area — starting with your biggest gaps below.
+      </p>
+
+      <div className="flex flex-col gap-3 mb-6">
+        {relevantTools.map((tool) => (
+          <div
+            key={tool.title}
+            className="flex items-start gap-3 rounded-xl border border-slate-200 bg-white p-4"
+          >
+            <div className="flex-shrink-0 flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-600 text-white">
+              <tool.icon className="h-4 w-4" />
+            </div>
+            <div>
+              <p className="font-semibold text-slate-900 text-sm">{tool.title}</p>
+              <p className="text-sm text-slate-600 mt-0.5">{tool.desc}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <Link
+        to="/membership"
+        className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-6 py-3 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors"
+      >
+        Join Standard — $6/month
+        <ArrowRight className="h-4 w-4" />
+      </Link>
+      <p className="mt-3 text-xs text-slate-400">
+        Cancel anytime. Everything above is available the moment you join.
+      </p>
+    </section>
+  );
+}
 
 export default function ResultScreen({ result, onRestart }) {
   const {
@@ -120,6 +229,8 @@ export default function ResultScreen({ result, onRestart }) {
           ))}
         </div>
       </section>
+
+      <MembershipUpsell weaknesses={weaknesses} />
 
       <button
         type="button"

@@ -117,16 +117,16 @@ export default function PrivacyPolicy() {
 
             <h3 style={styles.h3}>Payment information</h3>
             <p style={styles.p}>
-              Membership payments are processed by <strong>Stripe, Inc.</strong> We
+              Membership payments are processed by <strong>Razorpay</strong>. We
               never see or store your full card number or CVV — those go directly to
-              Stripe's secure systems, governed by{" "}
+              Razorpay's secure systems, governed by{" "}
               <a
-                href="https://stripe.com/privacy"
+                href="https://razorpay.com/privacy/"
                 style={styles.inlineLink}
                 target="_blank"
                 rel="noreferrer"
               >
-                Stripe's Privacy Policy
+                Razorpay's Privacy Policy
               </a>
               . We receive limited information back, such as your subscription status
               and billing history, to manage your membership.
@@ -150,7 +150,7 @@ export default function PrivacyPolicy() {
             <ul style={styles.ul}>
               <li>Create and manage your account</li>
               <li>Provide and operate the membership Service</li>
-              <li>Process payments and manage subscriptions through Stripe</li>
+              <li>Process payments and manage subscriptions through Razorpay</li>
               <li>Communicate with you about your account or the Service</li>
               <li>Improve, personalize, and secure the Service</li>
               <li>Comply with legal obligations</li>
@@ -184,7 +184,7 @@ export default function PrivacyPolicy() {
                     <td style={styles.td}>Auth tokens, basic profile info</td>
                   </tr>
                   <tr>
-                    <td style={styles.td}>Stripe</td>
+                    <td style={styles.td}>Razorpay</td>
                     <td style={styles.td}>Membership payment processing</td>
                     <td style={styles.td}>Billing details, payment method</td>
                   </tr>
@@ -231,7 +231,7 @@ export default function PrivacyPolicy() {
 
           <Section id="security" number="07" title="Security">
             <p style={styles.p}>
-              We rely on the security measures built into Supabase and Stripe, plus our
+              We rely on the security measures built into Supabase and Razorpay, plus our
               own reasonable safeguards, to protect your information. No method of
               transmission or storage is 100% secure, and we can't guarantee absolute
               security.

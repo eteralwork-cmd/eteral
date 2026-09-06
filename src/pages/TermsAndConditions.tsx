@@ -147,8 +147,8 @@ export default function TermsAndConditions() {
 
             <h3 style={styles.h3}>Payment processing</h3>
             <p style={styles.p}>
-              All payments are handled by <strong>Stripe, Inc.</strong> We don't
-              collect or store your full card details — Stripe processes these
+              All payments are handled by <strong>Razorpay</strong>. We don't
+              collect or store your full card details — Razorpay processes these
               directly under its own terms and privacy policy.
             </p>
 

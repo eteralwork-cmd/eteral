@@ -35,6 +35,33 @@ export default function CareerReadinessQuiz({
 
   const STORAGE_KEY = "crq_quiz_state";
 
+  function handleSelect(questionId, value) {
+    setAnswers((prev) => ({ ...prev, [questionId]: value }));
+  }
+
+  async function handleNext() {
+    if (!hasAnsweredCurrent) return;
+
+    if (isLastQuestion) {
+      setStage("loading");
+      try {
+        const built = await buildQuizResult(answers, { useAI });
+        setResult(built);
+        setStage(isAuthenticated ? "results" : "locked");
+      } catch {
+        setStage("error");
+      }
+    } else {
+      setCurrentIndex((i) => i + 1);
+    }
+  }
+
+  function handleBack() {
+    if (!isFirstQuestion) {
+      setCurrentIndex((i) => i - 1);
+    }
+  }
+
 // restore on mount
 useEffect(() => {
   const saved = sessionStorage.getItem(STORAGE_KEY);

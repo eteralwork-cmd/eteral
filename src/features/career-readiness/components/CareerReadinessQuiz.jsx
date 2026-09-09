@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { QUESTIONS, TOTAL_QUESTIONS } from "../data/questions.js";
 import { isQuizComplete } from "../lib/scoring.js";
 import { buildQuizResult } from "../lib/resultBuilder.js";
 import ProgressBar from "./ProgressBar.jsx";
 import QuestionCard from "./QuestionCard.jsx";
 import ResultScreen from "./ResultScreen.jsx";
+import { supabase } from "@/lib/supabase";
 
 /**
  * Self-contained Career Readiness Assessment.
@@ -39,6 +40,8 @@ export default function CareerReadinessQuiz({
     setAnswers((prev) => ({ ...prev, [questionId]: value }));
   }
 
+  const savedRef = useRef(false);
+
   async function handleNext() {
     if (!hasAnsweredCurrent) return;
 
@@ -48,6 +51,29 @@ export default function CareerReadinessQuiz({
         const built = await buildQuizResult(answers, { useAI });
         setResult(built);
         setStage(isAuthenticated ? "results" : "locked");
+
+        if (isAuthenticated && built.categoryScores && !savedRef.current) {
+          savedRef.current = true;
+          try {
+            const { data: session } = await supabase.auth.getSession();
+            if (session.session) {
+              const now = new Date().toISOString();
+              const upserts = Object.entries(built.categoryScores).map(([category, score]) => ({
+                category,
+                score: Math.round(score),
+                last_updated_at: now,
+              }));
+              await supabase.from("readiness_scores").upsert(upserts, { onConflict: "user_id,category" });
+              await supabase.from("quiz_attempts").insert({
+                answers,
+                resulting_scores: built.categoryScores,
+                overall_score: built.overallScore,
+              });
+            }
+          } catch (e) {
+            console.error("Failed to save quiz scores:", e);
+          }
+        }
       } catch {
         setStage("error");
       }

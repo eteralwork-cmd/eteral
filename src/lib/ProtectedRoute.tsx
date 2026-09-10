@@ -6,9 +6,10 @@ import { useMembership } from './membership';
 
 type Props = {
   children: ReactNode;
+  requirePaid?: boolean;
 };
 
-export default function ProtectedRoute({ children }: Props) {
+export default function ProtectedRoute({ children, requirePaid = false }: Props) {
   const { user, loading: authLoading } = useAuth();
   const { isStandard, loading: membershipLoading } = useMembership();
   const location = useLocation();
@@ -18,7 +19,7 @@ export default function ProtectedRoute({ children }: Props) {
     intendedDest.current = location.pathname;
   }, [location.pathname]);
 
-  if (authLoading || membershipLoading) {
+  if (authLoading || (requirePaid && membershipLoading)) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-paper">
         <Loader2 className="h-6 w-6 animate-spin text-slatey" />
@@ -30,7 +31,7 @@ export default function ProtectedRoute({ children }: Props) {
     return <Navigate to="/login" state={{ from: intendedDest.current }} replace />;
   }
 
-  if (!isStandard) {
+  if (requirePaid && !isStandard) {
     return <Navigate to="/membership" replace />;
   }
 

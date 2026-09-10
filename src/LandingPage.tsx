@@ -38,9 +38,9 @@ import Projects from "./pages/Projects";
 import Applications from "./pages/Applications";
 import ResumeResources from "./pages/ResumeResources";
 import ProtectedRoute from "./lib/ProtectedRoute";
-import { useMembership } from "./lib/membership";
 import logo from "./assets/eteral_symbol.png"; // adjust path to wherever it lives in assets
-
+import RefundAndCancellation from "./pages/RefundAndCancellation";
+import Contact from "./pages/Contact";
 
 
 
@@ -225,17 +225,20 @@ export function Header({
   }, []);
 
   const navigate = useNavigate();
-  const { isStandard } = useMembership();
 
   const nav = [
     { label: 'Home', id: 'home' },
     { label: 'Freebies', id: 'freebies' },
     { label: 'Membership', id: 'membership', path: '/membership' },
-    ...(isStandard ? [{ label: 'Dashboard', id: 'dashboard', path: '/dashboard' }] : []),
+    { label: 'Dashboard', id: 'dashboard', path: '/dashboard' },
     { label: 'Contact', id: 'contact' },
   ];
 
   const handleNavClick = (n: { id: string; path?: string }) => {
+    if (n.id === 'dashboard' && !user) {
+      onAuth('signup');
+      return;
+    }
     if (n.path) {
       navigate(n.path);
     } else {
@@ -267,14 +270,12 @@ export function Header({
         <div className="hidden md:flex items-center gap-3">
           {user ? (
             <div className="flex items-center gap-3">
-              {isStandard && (
-                <button
-                  onClick={() => navigate('/dashboard')}
-                  className="text-xs font-medium text-coral hover:text-ink transition-colors"
-                >
-                  Dashboard
-                </button>
-              )}
+              <button
+                onClick={() => navigate('/dashboard')}
+                className="text-xs font-medium text-coral hover:text-ink transition-colors"
+              >
+                Dashboard
+              </button>
               <span className="text-xs text-slatey max-w-[12rem] truncate">
                 {user.email}
               </span>
@@ -879,7 +880,9 @@ export function Footer({ onNav }: { onNav: (id: string) => void }) {
   { label: 'Membership', path: '/membership', type: 'route' },
   { label: 'Contact', id: 'contact', type: 'scroll' },
   { label: 'Privacy Policy', path: '/privacy-policy', type: 'route' },
-  { label: 'Terms', path: '/terms-and-conditions', type: 'route' },
+  { label: 'Terms and Condition', path: '/terms-and-conditions', type: 'route' },
+  { label: 'Refund and Cancellation', path: '/refund-and-cancellation', type: 'route'},
+  {label: 'Contact Eteral', path: '/contact-eteral', type: 'route'}
 ];
 
   return (
@@ -894,13 +897,12 @@ export function Footer({ onNav }: { onNav: (id: string) => void }) {
                   eteral
                 </span>
                 <span className="text-[0.5rem] font-medium tracking-widest2 text-slatey uppercase mt-0.5">
-                  Digital Products
+                  grow in it
                 </span>
               </div>
             </div>
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-slatey">
-              Calm, well-made digital products for studying, focusing and
-              earning. One email a month, no fluff.
+              Calm, well-made for career readiness and to actually improve your journey
             </p>
             <form onSubmit={submit} className="mt-5">
               <div className="flex items-center gap-2 rounded-full border border-mist bg-paper p-1 pl-4 focus-within:border-ink/30">
@@ -976,7 +978,7 @@ export function Footer({ onNav }: { onNav: (id: string) => void }) {
             © {new Date().getFullYear()} Eteral. All rights reserved.
           </p>
           <p className="text-xs text-slatey">
-            Made with care for students and creators.
+            Made with care for You.
           </p>
         </div>
       </div>
@@ -1112,7 +1114,8 @@ export default function App() {
       <Route path="/blog/:slug" element={<BlogPost />} />
       <Route path="/privacy-policy" element={<PrivacyPolicy />} />
       <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
-
+      <Route path="/refund-and-cancellation" element={<RefundAndCancellation />} />
+      <Route path="/contact-eteral" element={<Contact />} />
       {/* Standard-protected routes */}
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/projects" element={<ProtectedRoute><Projects /></ProtectedRoute>} />

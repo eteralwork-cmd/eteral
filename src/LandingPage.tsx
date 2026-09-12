@@ -41,6 +41,11 @@ import ProtectedRoute from "./lib/ProtectedRoute";
 import logo from "./assets/eteral_symbol.png"; // adjust path to wherever it lives in assets
 import RefundAndCancellation from "./pages/RefundAndCancellation";
 import Contact from "./pages/Contact";
+import BoostYourResume from './pages/BoostYourResume';
+import ResumeCheck from './pages/ResumeCheck';
+import EterAlAssistant from '@/components/EterAlAssistant';
+
+
 
 
 
@@ -1052,6 +1057,7 @@ function LandingPage() {
         initialMode={authMode}
         onSuccess={onAuthSuccess}
       />
+      <EterAlAssistant />
     </div>
   );
 }
@@ -1116,6 +1122,8 @@ export default function App() {
       <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
       <Route path="/refund-and-cancellation" element={<RefundAndCancellation />} />
       <Route path="/contact-eteral" element={<Contact />} />
+      <Route path="/resume" element={<ProtectedRoute><BoostYourResume /></ProtectedRoute>} />
+<Route path="/resume/check" element={<ProtectedRoute><ResumeCheck /></ProtectedRoute>} />
       {/* Standard-protected routes */}
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/projects" element={<ProtectedRoute><Projects /></ProtectedRoute>} />

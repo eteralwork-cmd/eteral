@@ -5,6 +5,13 @@
  * (questions.js) references categories by `id`. Scoring (lib/scoring.js)
  * reads `weight` and `resourceId` from here. Nothing else in the app should
  * hard-code category labels or thresholds.
+ *
+ * NOTE: Condensed from 9 categories / 25 questions to 6 categories / 6 questions
+ * for onboarding (one question per category, 0-3 scale, max raw score = 18).
+ * `organization` and `professionalGrowth` were dropped from the core assessment —
+ * they're habit/meta signals rather than current-level signals. Consider
+ * resurfacing them as an in-app follow-up nudge after a user's first week,
+ * rather than at signup.
  */
 
 export const CATEGORIES = [
@@ -13,7 +20,7 @@ export const CATEGORIES = [
     label: "Career Clarity",
     shortLabel: "Clarity",
     description:
-      "How clearly you've defined the roles, industries, or paths you're aiming for.",
+      "How clearly you've defined the roles, industries, or paths you're aiming for, and how well you understand what the work actually involves.",
     weight: 1,
     resourceId: "career-direction-guide",
   },
@@ -22,7 +29,7 @@ export const CATEGORIES = [
     label: "Skill Readiness",
     shortLabel: "Skills",
     description:
-      "How far your practical, job-relevant skills have progressed beyond coursework.",
+      "How far your practical, job-relevant skills have progressed beyond coursework, and how current they are with what the market asks for.",
     weight: 1,
     resourceId: "skill-roadmap",
   },
@@ -31,61 +38,36 @@ export const CATEGORIES = [
     label: "Project & Portfolio Readiness",
     shortLabel: "Portfolio",
     description:
-      "How much visible, verifiable evidence of your abilities you can show an employer.",
+      "How much visible, verifiable, well-explained evidence of your abilities you can show an employer right now.",
     weight: 1,
     resourceId: "portfolio-guide",
   },
   {
-    id: "resumeReadiness",
-    label: "Resume Readiness",
-    shortLabel: "Resume",
-    description: "How complete, current, and targeted your resume is.",
+    id: "materialsReadiness",
+    label: "Materials Readiness",
+    shortLabel: "Materials",
+    description:
+      "How current, complete, and tailored your resume and professional profile (e.g. LinkedIn) are.",
     weight: 1,
     resourceId: "resume-toolkit",
-  },
-  {
-    id: "professionalPresence",
-    label: "Professional Presence",
-    shortLabel: "Presence",
-    description:
-      "How discoverable and credible you look online to recruiters and peers.",
-    weight: 1,
-    resourceId: "personal-brand-guide",
   },
   {
     id: "interviewReadiness",
     label: "Interview Readiness",
     shortLabel: "Interviews",
-    description: "How prepared you are to perform well once you get an interview.",
+    description:
+      "How prepared you are to talk through your experience and perform well once you get an interview.",
     weight: 1,
     resourceId: "interview-prep-kit",
   },
   {
-    id: "jobSearchReadiness",
-    label: "Job Search Readiness",
+    id: "jobSearchMomentum",
+    label: "Job Search Momentum",
     shortLabel: "Job Search",
     description:
-      "How active, targeted, and systematic your actual job search process is.",
+      "How active, targeted, and systematic your actual job search process is right now.",
     weight: 1,
     resourceId: "job-search-tracker",
-  },
-  {
-    id: "organization",
-    label: "Organization & Execution",
-    shortLabel: "Organization",
-    description:
-      "How reliably you plan, track, and follow through on career preparation tasks.",
-    weight: 1,
-    resourceId: "career-planner",
-  },
-  {
-    id: "professionalGrowth",
-    label: "Professional Growth",
-    shortLabel: "Growth",
-    description:
-      "How consistently you're learning, seeking feedback, and building your network.",
-    weight: 1,
-    resourceId: "growth-habits-guide",
   },
 ];
 
@@ -93,7 +75,13 @@ export const CATEGORY_IDS = CATEGORIES.map((c) => c.id);
 
 /**
  * Readiness stages. `min` is inclusive; stages are checked from highest
- * to lowest. Keep in sync with the spec: 0-39 / 40-59 / 60-74 / 75-89 / 90-100.
+ * to lowest. Score is a 0-100 percentage of raw points (max raw = 18,
+ * i.e. 6 categories x 0-3 each). Thresholds carried over unchanged from
+ * the original 25-question spec (0-39 / 40-59 / 60-74 / 75-89 / 90-100) —
+ * revisit these once you have real completion data, since a 6-question
+ * assessment has coarser score granularity (each question is worth ~5.6
+ * percentage points instead of ~2), so users will cluster more and land on
+ * stage boundaries more easily than before.
  */
 export const READINESS_STAGES = [
   {

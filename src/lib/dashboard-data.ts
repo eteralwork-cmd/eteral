@@ -24,6 +24,7 @@ export type Connection = {
 };
 
 export type TrackerEntry = {
+  skills: string[];
   id: string;
   type: 'project' | 'skill' | 'experience';
   title: string;

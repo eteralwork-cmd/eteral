@@ -34,8 +34,6 @@ import LoginPage from "./pages/Login";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCancelled from "./pages/PaymentCancelled";
 import Dashboard from "./pages/Dashboard";
-import Projects from "./pages/Projects";
-import Applications from "./pages/Applications";
 import ResumeResources from "./pages/ResumeResources";
 import ProtectedRoute from "./lib/ProtectedRoute";
 import { useMembership } from "./lib/membership";
@@ -1115,8 +1113,9 @@ export default function App() {
 
       {/* Standard-protected routes */}
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-      <Route path="/projects" element={<ProtectedRoute><Projects /></ProtectedRoute>} />
-      <Route path="/applications" element={<ProtectedRoute><Applications /></ProtectedRoute>} />
+      <Route path="/dashboard/skills" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+      <Route path="/dashboard/projects" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+      <Route path="/dashboard/clarity" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/standard/resume" element={<ProtectedRoute><ResumeResources /></ProtectedRoute>} />
     </Routes>
   );

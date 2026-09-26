@@ -1,57 +1,42 @@
 import { CATEGORIES } from "../data/categories.js";
 import CategoryBar from "./CategoryBar.jsx";
 import { Link } from "react-router-dom";
-import { ArrowRight, FileText, FolderKanban, Briefcase, Sparkles } from "lucide-react";
+import { ArrowRight, FileText, FolderKanban, Briefcase, Sparkles, LayoutDashboard } from "lucide-react";
 
 const CATEGORY_TO_TOOL = {
-  resumeReadiness: {
-    icon: FileText,
-    title: "Resume Resources & ATS Templates",
-    desc: "Get ATS-friendly templates, checklists, and step-by-step resume-building guidance tailored to your target roles.",
+  careerClarity: {
+    icon: Sparkles,
+    title: "Standard Member Dashboard",
+    desc: "Get stage-specific career questions and resources that help you narrow your direction and act on it.",
+  },
+  skillReadiness: {
+    icon: Sparkles,
+    title: "Skill Tracker + Project Tracker",
+    desc: "Turn studied skills into applied ones. Build projects that prove your skills and tailor your resume to highlight them.",
   },
   portfolioReadiness: {
     icon: FolderKanban,
     title: "Project Tracker",
     desc: "Plan, build, and document projects that fill your portfolio gaps — so employers can see proof of your skills.",
   },
-  jobSearchReadiness: {
-    icon: Briefcase,
-    title: "Application Tracker",
-    desc: "Track every application from saved to offered, so your job search stays organized and consistent.",
-  },
-  organization: {
-    icon: FolderKanban,
-    title: "Project Tracker + Dashboard",
-    desc: "Set goals, track progress, and follow through on your career prep with a system that keeps you accountable.",
-  },
-  skillReadiness: {
-    icon: Sparkles,
-    title: "Resume Resources + Project Tracker",
-    desc: "Turn studied skills into applied ones. Build projects that prove your skills and tailor your resume to highlight them.",
+  materialsReadiness: {
+    icon: FileText,
+    title: "Resume Resources & ATS Templates",
+    desc: "Get ATS-friendly templates, checklists, and step-by-step resume and profile guidance tailored to your target roles.",
   },
   interviewReadiness: {
     icon: FileText,
-    title: "Resume Resources",
-    desc: "Prepare specific, outcome-driven bullet points that become your interview talking points and practiced examples.",
+    title: "AI Mock Interviews",
+    desc: "Practice with simulated interviews and get feedback on your answers, pacing, and clarity before the real thing.",
   },
-  careerClarity: {
-    icon: Sparkles,
-    title: "Standard Member Dashboard",
-    desc: "Get stage-specific career questions and resources that help you narrow your direction and act on it.",
-  },
-  professionalPresence: {
-    icon: FileText,
-    title: "Resume Resources",
-    desc: "Build a resume and professional narrative that's consistent across LinkedIn, applications, and recruiter outreach.",
-  },
-  professionalGrowth: {
+  jobSearchMomentum: {
     icon: Briefcase,
-    title: "Application Tracker + Dashboard",
-    desc: "Track your networking outreach and feedback loops alongside your applications, so growth stays intentional.",
+    title: "Job Matching + Application Tracker",
+    desc: "Track every application from saved to offered, and see how well you match roles you're targeting.",
   },
 };
 
-function MembershipUpsell({ weaknesses }) {
+function MembershipUpsell({ weaknesses, isMember }) {
   const relevantTools = [];
   const seen = new Set();
 
@@ -68,15 +53,16 @@ function MembershipUpsell({ weaknesses }) {
       <div className="flex items-center gap-2 mb-2">
         <Sparkles className="h-4 w-4 text-indigo-600" />
         <span className="text-xs font-semibold uppercase tracking-wide text-indigo-600">
-          Eteral Standard Membership
+          {isMember ? "Recommended for You" : "Eteral Standard Membership"}
         </span>
       </div>
       <h2 className="text-lg font-semibold text-slate-900 mb-2">
         Close your gaps with the right tools
       </h2>
       <p className="text-sm text-slate-600 mb-5 max-w-md">
-        Your results show where you stand today. Standard membership gives you the tools to
-        systematically improve each area — starting with your biggest gaps below.
+        {isMember
+          ? "Your results show where you stand today. Here's where to start in your dashboard, based on your biggest gaps."
+          : "Your results show where you stand today. Standard membership gives you the tools to systematically improve each area — starting with your biggest gaps below."}
       </p>
 
       <div className="flex flex-col gap-3 mb-6">
@@ -96,21 +82,34 @@ function MembershipUpsell({ weaknesses }) {
         ))}
       </div>
 
-      <Link
-        to="/membership"
-        className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-6 py-3 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors"
-      >
-        Join Standard — $6/month
-        <ArrowRight className="h-4 w-4" />
-      </Link>
-      <p className="mt-3 text-xs text-slate-400">
-        Cancel anytime. Everything above is available the moment you join.
-      </p>
+      {isMember ? (
+        <Link
+          to="/dashboard"
+          className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-6 py-3 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors"
+        >
+          <LayoutDashboard className="h-4 w-4" />
+          Go to My Dashboard
+          <ArrowRight className="h-4 w-4" />
+        </Link>
+      ) : (
+        <>
+          <Link
+            to="/membership"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-6 py-3 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors"
+          >
+            Join Standard — $6/month
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+          <p className="mt-3 text-xs text-slate-400">
+            Cancel anytime. Everything above is available the moment you join.
+          </p>
+        </>
+      )}
     </section>
   );
 }
 
-export default function ResultScreen({ result, onRestart }) {
+export default function ResultScreen({ result, isMember = false }) {
   const {
     overallScore,
     readinessStage,
@@ -230,15 +229,7 @@ export default function ResultScreen({ result, onRestart }) {
         </div>
       </section>
 
-      <MembershipUpsell weaknesses={weaknesses} />
-
-      <button
-        type="button"
-        onClick={onRestart}
-        className="w-full rounded-xl border border-slate-300 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 transition-colors"
-      >
-        Restart Assessment
-      </button>
+      <MembershipUpsell weaknesses={weaknesses} isMember={isMember} />
     </div>
   );
 }

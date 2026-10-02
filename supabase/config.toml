@@ -1,0 +1,19 @@
+[functions.razorpay-create-subscription]
+verify_jwt = false
+
+[functions.razorpay-cancel-subscription]
+verify_jwt = false
+[functions.razorpay-webhook]
+verify_jwt = false
+
+[functions.clarity-analyze]
+verify_jwt = true
+
+[functions.coding-challenge-generate]
+verify_jwt = true
+
+[functions.judge0-run]
+verify_jwt = true
+
+[functions.project-idea-generate]
+verify_jwt = true

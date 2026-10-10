@@ -299,7 +299,7 @@ export function ClarityPage({ dashboard }: { dashboard: ReturnType<typeof useDas
         </div>
       )}
 
-      <div className={`grid grid-cols-1 lg:grid-cols-2 gap-6 ${!isStandard ? 'relative' : ''}`}>
+      <div className={!isStandard ? 'relative' : ''}>
         {!isStandard && (
           <div className="absolute inset-0 z-10 flex items-center justify-center">
             <div className="rounded-2xl border border-coral/30 bg-white/90 backdrop-blur-sm px-8 py-6 text-center shadow-lg">
@@ -317,7 +317,7 @@ export function ClarityPage({ dashboard }: { dashboard: ReturnType<typeof useDas
           </div>
         )}
 
-        <div className={!isStandard ? 'blur-sm pointer-events-none select-none' : ''}>
+        <div className={`grid grid-cols-1 lg:grid-cols-2 gap-6 ${!isStandard ? 'blur-sm pointer-events-none select-none' : ''}`}>
         {/* Question bank */}
         <div className="rounded-2xl border border-mist bg-white p-5">
           <h2 className="text-base font-semibold text-ink">Practice Questions</h2>

@@ -31,12 +31,7 @@ const RESOURCES: Resource[] = [
   { name: 'Khan Academy', description: 'Free courses on programming, computer science, and math.', url: 'https://www.khanacademy.org/computing', type: 'free', category: 'Tutorials' },
   { name: 'The Odin Project', description: 'Free full-stack web development curriculum with real projects.', url: 'https://www.theodinproject.com', type: 'free', category: 'Tutorials' },
   { name: 'JavaScript.info', description: 'A modern, in-depth JavaScript tutorial from basics to advanced topics.', url: 'https://javascript.info', type: 'free', category: 'Tutorials' },
-  { name: 'GitHub', description: 'Explore open source projects, contribute, and build your portfolio.', url: 'https://github.com', type: 'free', category: 'Open Source' },
-  { name: 'HackerRank', description: 'Practice coding challenges and prepare for technical interviews.', url: 'https://www.hackerrank.com', type: 'free', category: 'Open Source' },
-  { name: 'LeetCode', description: 'Algorithm and data structure problems with a freemium model.', url: 'https://leetcode.com', type: 'free', category: 'Open Source' },
-  { name: 'Codeforces', description: 'Competitive programming contests and problem archive.', url: 'https://codeforces.com', type: 'free', category: 'Open Source' },
-  { name: 'Exercism', description: 'Free coding practice with mentorship in 50+ languages.', url: 'https://exercism.org', type: 'free', category: 'Open Source' },
-  { name: 'Codewars', description: 'Improve your skills by solving katas in a gamified format.', url: 'https://www.codewars.com', type: 'free', category: 'Open Source' },
+  
   { name: 'Coursera', description: 'University-backed courses and professional certificates.', url: 'https://www.coursera.org', type: 'paid', category: 'Paid Courses' },
   { name: 'Udemy', description: 'Affordable on-demand courses on nearly every tech topic.', url: 'https://www.udemy.com', type: 'paid', category: 'Paid Courses' },
   { name: 'Frontend Masters', description: 'Expert-led courses on frontend, JavaScript, and design.', url: 'https://frontendmasters.com', type: 'paid', category: 'Paid Courses' },
@@ -48,7 +43,6 @@ const RESOURCES: Resource[] = [
 const CATEGORIES: { label: string; icon: React.ReactNode }[] = [
   { label: 'Documentation', icon: <BookOpen className="h-4 w-4" /> },
   { label: 'Tutorials', icon: <GraduationCap className="h-4 w-4" /> },
-  { label: 'Open Source', icon: <Code2 className="h-4 w-4" /> },
   { label: 'Paid Courses', icon: <DollarSign className="h-4 w-4" /> },
 ];
 

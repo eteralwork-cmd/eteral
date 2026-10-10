@@ -18,24 +18,19 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
 import { useMembership } from '@/lib/membership';
 import { useDashboard } from '@/lib/useDashboard';
+import { usePyodide } from '@/lib/usePyodide';
 import { XP_REWARDS } from '@/lib/gamification';
 import PaywallCard from './PaywallCard';
 
-type Language = { label: string; value: string; judge0Id: number };
+type Language = { label: string; value: string; judge0Id: number; runner: 'pyodide' | 'judge0' };
 type Level = { label: string; value: string };
 type Mode = { label: string; value: string; minutes: number };
 
 const LANGUAGES: Language[] = [
-  { label: 'JavaScript', value: 'javascript', judge0Id: 63 },
-  { label: 'Python', value: 'python', judge0Id: 71 },
-  { label: 'Java', value: 'java', judge0Id: 62 },
-  { label: 'C++', value: 'cpp', judge0Id: 76 },
-  { label: 'C', value: 'c', judge0Id: 50 },
-  { label: 'TypeScript', value: 'typescript', judge0Id: 94 },
-  { label: 'Ruby', value: 'ruby', judge0Id: 72 },
-  { label: 'Go', value: 'go', judge0Id: 60 },
-  { label: 'Rust', value: 'rust', judge0Id: 91 },
-  { label: 'PHP', value: 'php', judge0Id: 68 },
+  { label: 'Python', value: 'python', judge0Id: 71, runner: 'pyodide' },
+  { label: 'SQL', value: 'sql', judge0Id: 82, runner: 'judge0' },
+  { label: 'JavaScript', value: 'javascript', judge0Id: 63, runner: 'judge0' },
+  { label: 'TypeScript', value: 'typescript', judge0Id: 94, runner: 'judge0' },
 ];
 
 const LEVELS: Level[] = [
@@ -60,6 +55,7 @@ type Challenge = {
   starterCode: string;
   solution: string;
   testCases: { input: string; expectedOutput: string }[];
+  setupSql?: string;
   language: string;
   judge0LanguageId: number;
   level: string;
@@ -74,6 +70,7 @@ export function CodingSpacePage({ dashboard }: { dashboard: ReturnType<typeof us
   const { isStandard } = useMembership();
   const { user } = useAuth();
   const { awardXp, refresh, codingChallenges } = dashboard;
+  const { runPython, warmUp } = usePyodide();
   const [phase, setPhase] = useState<Phase>('setup');
   const [language, setLanguage] = useState<Language | null>(null);
   const [level, setLevel] = useState<Level | null>(null);
@@ -115,6 +112,12 @@ export function CodingSpacePage({ dashboard }: { dashboard: ReturnType<typeof us
     }, 1000);
   }, [stopTimer]);
 
+  const handleSelectLanguage = (lang: Language) => {
+    setLanguage(lang);
+    // Start downloading Python while the learner is still choosing level and mode
+    if (lang.runner === 'pyodide') warmUp().catch(() => {});
+  };
+
   const handleGenerate = async () => {
     if (!language || !level || !mode) return;
     setPhase('loading');
@@ -155,9 +158,25 @@ export function CodingSpacePage({ dashboard }: { dashboard: ReturnType<typeof us
       const results: TestResult[] = [];
 
       for (const testCase of challenge.testCases) {
+        // Python runs in the browser with Pyodide (no Judge0 execution used)
+        if (challenge.language === 'python') {
+          const r = await runPython(code, testCase.input ?? '');
+          const actual = r.stdout.trim();
+          const expected = (testCase.expectedOutput ?? '').trim();
+          results.push({
+            passed: actual === expected && !r.stderr.includes('Traceback') && !r.timedOut,
+            input: testCase.input || '(none)',
+            expected,
+            actual,
+            stderr: r.stderr,
+          });
+          continue;
+        }
+
+        // SQL, JavaScript and TypeScript run on Judge0
         const { data, error: fnError } = await supabase.functions.invoke('judge0-run', {
           body: {
-            sourceCode: code,
+            sourceCode: challenge.setupSql ? challenge.setupSql + '\n' + code : code,
             languageId: challenge.judge0LanguageId,
             stdin: testCase.input,
           },
@@ -251,7 +270,7 @@ export function CodingSpacePage({ dashboard }: { dashboard: ReturnType<typeof us
               <span className="text-sm font-medium text-ink">Take a Challenge</span>
             </div>
             <div className="grid grid-cols-3 gap-3">
-              {['JavaScript', 'Python', 'Java'].map((l) => (
+              {['Python', 'SQL', 'JavaScript'].map((l) => (
                 <div key={l} className="rounded-xl border border-mist bg-paper px-3 py-2 text-center text-xs font-medium text-slatey">{l}</div>
               ))}
             </div>
@@ -349,7 +368,7 @@ export function CodingSpacePage({ dashboard }: { dashboard: ReturnType<typeof us
               {LANGUAGES.map((lang) => (
                 <button
                   key={lang.value}
-                  onClick={() => setLanguage(lang)}
+                  onClick={() => handleSelectLanguage(lang)}
                   className={`rounded-full px-4 py-2 text-sm font-medium transition-all ${
                     language?.value === lang.value
                       ? 'bg-gradient-accent text-white'

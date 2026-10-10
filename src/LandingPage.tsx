@@ -147,7 +147,6 @@ export function Header({
   const nav = [
     { label: 'Home', id: 'home' },
     { label: 'Career Quiz', id: 'quiz', path: '/career-readiness' },
-    { label: 'Freebies', id: 'freebies' },
     { label: 'Membership', id: 'membership', path: '/membership' },
     { label: 'Dashboard', id: 'dashboard', path: '/dashboard' },
     { label: 'Contact', id: 'contact' },
@@ -410,7 +409,6 @@ export function Footer({ onNav }: { onNav: (id: string) => void }) {
 
   const links = [
     { label: 'Career Quiz', path: '/career-readiness', type: 'route' },
-    { label: 'Freebies', id: 'freebies', type: 'scroll' },
     { label: 'Membership', path: '/membership', type: 'route' },
     { label: 'Contact', id: 'contact', type: 'scroll' },
     { label: 'Privacy Policy', path: '/privacy-policy', type: 'route' },
@@ -477,7 +475,7 @@ export function Footer({ onNav }: { onNav: (id: string) => void }) {
             </div>
             <p className="mt-6 flex items-center gap-2 text-xs text-slatey">
               <TrendingUp className="h-3.5 w-3.5 text-coral" />
-              New freebies added every month.
+              
             </p>
           </div>
         </div>
@@ -545,7 +543,6 @@ function LandingPage() {
         <ProjectsSection />
         <Interview />
         <CareerProfile />
-        <Freebies onRequireAuth={requireAuthForFreebie} />
         <Blog />
         <Trust />
         <FinalCta />

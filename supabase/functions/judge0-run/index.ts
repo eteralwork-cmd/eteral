@@ -1,126 +1,75 @@
-import { createClient } from "npm:@supabase/supabase-js@2.112.4";
+// supabase/functions/judge0-run/index.ts
+export {};
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
+declare const Deno: {
+  serve: (handler: (req: Request) => Response | Promise<Response>) => void;
+  env: {
+    get(key: string): string | undefined;
+  };
 };
 
-function jsonResponse(body: Record<string, unknown>, status = 200) {
-  return new Response(JSON.stringify(body), {
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+};
+
+const jsonResponse = (body: unknown, status = 200) =>
+  new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   });
-}
 
 Deno.serve(async (req: Request) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { status: 200, headers: corsHeaders });
-  }
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
   try {
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      return jsonResponse({ error: "Missing auth header" }, 401);
-    }
+    const { sourceCode, languageId, stdin } = await req.json();
 
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
-      { global: { headers: { Authorization: authHeader } } },
-    );
+    if (typeof sourceCode !== 'string' || !sourceCode.trim()) return jsonResponse({ error: 'No code provided' }, 400);
+    if (typeof languageId !== 'number') return jsonResponse({ error: 'Invalid languageId' }, 400);
+    if (sourceCode.length > 50000) return jsonResponse({ error: 'Code is too long' }, 400);
 
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    if (userError || !user) {
-      return jsonResponse({ error: "Unauthorized" }, 401);
-    }
+    const apiKey = Deno.env.get('JUDGE0_API_KEY');
+    if (!apiKey) return jsonResponse({ error: 'Server is missing JUDGE0_API_KEY' }, 500);
 
-    const body = await req.json();
-    const { sourceCode, languageId, stdin } = body as {
-      sourceCode: string;
-      languageId: number;
-      stdin?: string;
-    };
+    // Defaults assume the RapidAPI-hosted Judge0 CE. Override with secrets if you use another host.
+    const host = Deno.env.get('JUDGE0_HOST') ?? 'judge0-ce.p.rapidapi.com';
+    const baseUrl = Deno.env.get('JUDGE0_URL') ?? `https://${host}`;
 
-    if (!sourceCode || !languageId) {
-      return jsonResponse({ error: "Missing sourceCode or languageId" }, 400);
-    }
-
-    // Check and increment Judge0 execution quota BEFORE making the API call
-    const { data: quotaResult, error: quotaError } = await supabase.rpc("increment_judge0_usage", {
-      p_user_id: user.id,
-    });
-
-    if (quotaError || !quotaResult) {
-      return jsonResponse({ error: "Failed to check execution quota" }, 500);
-    }
-
-    if (quotaResult.allowed === false) {
-      return jsonResponse({
-        error: "Monthly code execution limit reached (1000 executions). Your quota resets in 30 days.",
-        quota_exceeded: true,
-        quota_used: quotaResult.used,
-        quota_limit: quotaResult.limit,
-        quota_period_start: quotaResult.quota_period_start,
-      }, 429);
-    }
-
-    const judge0Host = Deno.env.get("JUDGE0_HOST");
-    const judge0ApiKey = Deno.env.get("JUDGE0_API_KEY");
-
-    if (!judge0Host) {
-      return jsonResponse({
-        error: "Code execution service is not configured. Please contact support.",
-      }, 503);
-    }
-
-    const submitUrl = judge0ApiKey
-      ? `${judge0Host}/submissions?base64_encoded=false&wait=true&fields=stdout,stderr,status,compile_output,time,exit_code,message`
-      : `${judge0Host}/submissions?base64_encoded=false&wait=true&fields=stdout,stderr,status,compile_output,time,exit_code,message`;
-
-    const headers: Record<string, string> = { "Content-Type": "application/json" };
-    if (judge0ApiKey) {
-      headers["X-RapidAPI-Key"] = judge0ApiKey;
-      headers["X-RapidAPI-Host"] = judge0Host.replace("https://", "");
-    }
-
-    const submitResponse = await fetch(submitUrl, {
-      method: "POST",
-      headers,
+    const res = await fetch(`${baseUrl}/submissions?base64_encoded=false&wait=true`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-RapidAPI-Key': apiKey,
+        'X-RapidAPI-Host': host,
+      },
       body: JSON.stringify({
-        language_id: languageId,
         source_code: sourceCode,
-        stdin: stdin ?? "",
+        language_id: languageId,
+        stdin: stdin ?? '',
+        cpu_time_limit: 5,
+        memory_limit: 128000,
       }),
     });
 
-    if (!submitResponse.ok) {
-      const errText = await submitResponse.text();
-      console.error("Judge0 submit error:", errText);
-      return jsonResponse({ error: "Failed to submit code for execution" }, 502);
+    if (!res.ok) {
+      const detail = await res.text();
+      console.error('Judge0 error', res.status, detail);
+      return jsonResponse({ error: `Code runner error (${res.status}): ${detail.slice(0, 300)}` }, 502);
     }
 
-    const submission = await submitResponse.json();
+    const r = await res.json();
 
-    const result = {
-      stdout: submission.stdout ?? "",
-      stderr: submission.stderr ?? "",
-      compileOutput: submission.compile_output ?? "",
-      status: submission.status ?? null,
-      time: submission.time ?? null,
-      exitCode: submission.exit_code ?? null,
-      message: submission.message ?? null,
-      quota_remaining: quotaResult.remaining,
-      quota_limit: quotaResult.limit,
-      quota_used: quotaResult.used,
-    };
-
-    return jsonResponse(result);
-  } catch (err) {
-    console.error("judge0-run error:", err);
-    return jsonResponse(
-      { error: err instanceof Error ? err.message : "Execution failed" },
-      500,
-    );
+    return jsonResponse({
+      stdout: r.stdout ?? '',
+      stderr: r.stderr ?? '',
+      compileOutput: r.compile_output ?? '',
+      status: r.status?.description ?? '',
+      time: r.time ?? null,
+    });
+  } catch (e) {
+    console.error(e);
+    return jsonResponse({ error: String(e) }, 500);
   }
 });

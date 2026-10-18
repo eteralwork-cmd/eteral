@@ -129,9 +129,15 @@ export function CodingSpacePage({ dashboard }: { dashboard: ReturnType<typeof us
         body: { language: language.value, level: level.value, mode: mode.value },
       });
 
-      if (fnError || !data) {
-        throw new Error(fnError?.message ?? 'Failed to generate challenge');
-      }
+      if (fnError) {
+  let detail = fnError.message;
+  try {
+    const body = await (fnError as any).context.json();
+    detail = body.error ?? body.message ?? JSON.stringify(body);
+  } catch {}
+  throw new Error(detail);
+}
+if (!data) throw new Error('Failed to generate challenge');
 
       const result = data as Challenge;
       setChallenge(result);

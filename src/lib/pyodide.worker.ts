@@ -6,6 +6,7 @@ const PYODIDE_URL = `https://cdn.jsdelivr.net/pyodide/v${PYODIDE_VERSION}/full/`
 
 type InMessage =
   | { type: 'init' }
+  | { type: 'prepare'; id: number; code: string }
   | { type: 'run'; id: number; code: string; stdin: string };
 
 let pyodide: any = null;
@@ -44,6 +45,18 @@ self.onmessage = async (e: MessageEvent<InMessage>) => {
       (self as any).postMessage({ type: 'ready' });
     } catch (err) {
       (self as any).postMessage({ type: 'init-error', message: String(err) });
+    }
+    return;
+  }
+
+  if (msg.type === 'prepare') {
+    try {
+      await init();
+      // Downloads numpy, pandas, scikit-learn, etc. when the code imports them
+      await pyodide.loadPackagesFromImports(msg.code);
+      (self as any).postMessage({ type: 'prepared', id: msg.id });
+    } catch (err) {
+      (self as any).postMessage({ type: 'prepared', id: msg.id, error: String(err) });
     }
     return;
   }

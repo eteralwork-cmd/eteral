@@ -11,7 +11,6 @@ import {
   Trophy,
   RotateCcw,
   Sparkles,
-  Gauge,
   Zap,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
@@ -47,7 +46,6 @@ const MODES: Mode[] = [
 ];
 
 const JUDGE0_LIMIT = 1000;
-const GEMINI_LIMIT = 5000000;
 
 type Challenge = {
   title: string;
@@ -125,21 +123,35 @@ export function CodingSpacePage({ dashboard }: { dashboard: ReturnType<typeof us
     setQuotaError(false);
 
     try {
-      const { data, error: fnError } = await supabase.functions.invoke('coding-challenge-generate', {
-        body: { language: language.value, level: level.value, mode: mode.value },
-      });
+      const { data, error: bankError } = await supabase
+        .from('challenge_bank')
+        .select('id, title, description, starter_code, test_cases, setup_sql')
+        .eq('language', language.value)
+        .eq('level', level.value);
 
-      if (fnError) {
-  let detail = fnError.message;
-  try {
-    const body = await (fnError as any).context.json();
-    detail = body.error ?? body.message ?? JSON.stringify(body);
-  } catch {}
-  throw new Error(detail);
-}
-if (!data) throw new Error('Failed to generate challenge');
+      if (bankError) throw new Error(bankError.message);
+      if (!data || data.length === 0) {
+        throw new Error(`No ${level.label} ${language.label} challenges yet. Try another level.`);
+      }
 
-      const result = data as Challenge;
+      // Prefer challenges the learner has not solved yet
+      const solved = new Set(codingChallenges.filter((c) => c.passed).map((c) => c.problem_title));
+      const unsolved = data.filter((row) => !solved.has(row.title));
+      const pool = unsolved.length > 0 ? unsolved : data;
+      const pick = pool[Math.floor(Math.random() * pool.length)];
+
+      const result: Challenge = {
+        title: pick.title,
+        description: pick.description,
+        starterCode: pick.starter_code ?? '',
+        solution: '',
+        testCases: pick.test_cases,
+        setupSql: pick.setup_sql ?? undefined,
+        language: language.value,
+        judge0LanguageId: language.judge0Id,
+        level: level.value,
+        mode: mode.value,
+      };
       setChallenge(result);
       setCode(result.starterCode || '');
       setTestResults(null);
@@ -149,7 +161,7 @@ if (!data) throw new Error('Failed to generate challenge');
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Failed to generate challenge';
       setError(msg);
-      setQuotaError(msg.includes('limit reached') || msg.includes('quota'));
+      setQuotaError(false);
       setPhase('setup');
     }
   };
@@ -267,9 +279,9 @@ if (!data) throw new Error('Failed to generate challenge');
       <div className="space-y-6">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-ink">Coding Space</h1>
-          <p className="mt-1 text-sm text-slatey">Practice with AI-generated coding challenges and run your code in real time.</p>
+          <p className="mt-1 text-sm text-slatey">Practice AI and data challenges by level and run your code in real time.</p>
         </div>
-        <PaywallCard teaser="Coding Space generates personalized coding challenges with AI and runs your code instantly. Upgrade to Standard to unlock it.">
+        <PaywallCard teaser="Coding Space gives you level-based AI, data and software challenges and runs your code instantly. Upgrade to Standard to unlock it.">
           <div className="p-6 space-y-4">
             <div className="flex items-center gap-3">
               <Code2 className="h-5 w-5 text-coral" />
@@ -281,7 +293,7 @@ if (!data) throw new Error('Failed to generate challenge');
               ))}
             </div>
             <div className="rounded-xl border border-mist bg-paper p-4 font-mono text-xs text-slatey">
-              <p>{'// Your AI-generated challenge appears here'}</p>
+              <p>{'// Your challenge appears here'}</p>
               <p className="mt-2">{'function solve() {'}</p>
               <p>{'  // Write your solution'}</p>
               <p>{'}'}</p>
@@ -300,17 +312,14 @@ if (!data) throw new Error('Failed to generate challenge');
 
   const judge0Used = quota?.judge0_executions ?? 0;
   const judge0Remaining = JUDGE0_LIMIT - judge0Used;
-  const geminiUsed = quota?.gemini_tokens_used ?? 0;
-  const geminiRemaining = GEMINI_LIMIT - geminiUsed;
   const judge0Pct = Math.min(100, (judge0Used / JUDGE0_LIMIT) * 100);
-  const geminiPct = Math.min(100, (geminiUsed / GEMINI_LIMIT) * 100);
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-ink">Coding Space</h1>
-          <p className="mt-1 text-sm text-slatey">AI-generated challenges tailored to your level. Run code and get instant feedback.</p>
+          <p className="mt-1 text-sm text-slatey">Challenges built around AI, data and software skills, matched to your level. Run code and get instant feedback.</p>
         </div>
         {phase !== 'setup' && (
           <button
@@ -325,7 +334,7 @@ if (!data) throw new Error('Failed to generate challenge');
 
       {/* Quota usage bars */}
       {phase === 'setup' && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4">
           <div className="rounded-2xl border border-mist bg-white p-4">
             <div className="flex items-center gap-2">
               <Zap className="h-4 w-4 text-coral" />
@@ -337,19 +346,6 @@ if (!data) throw new Error('Failed to generate challenge');
             </div>
             <div className="mt-2 h-1.5 rounded-full bg-mist/60 overflow-hidden">
               <div className={`h-1.5 rounded-full transition-all ${judge0Pct > 80 ? 'bg-red-400' : 'bg-gradient-accent'}`} style={{ width: `${judge0Pct}%` }} />
-            </div>
-          </div>
-          <div className="rounded-2xl border border-mist bg-white p-4">
-            <div className="flex items-center gap-2">
-              <Gauge className="h-4 w-4 text-coral" />
-              <span className="text-xs font-semibold uppercase tracking-wider text-slatey">AI Tokens</span>
-            </div>
-            <div className="mt-2 flex items-baseline gap-1.5">
-              <span className="text-lg font-semibold text-ink tabular-nums">{(geminiRemaining / 1000000).toFixed(2)}M</span>
-              <span className="text-xs text-slatey">/ {(GEMINI_LIMIT / 1000000).toFixed(0)}M remaining</span>
-            </div>
-            <div className="mt-2 h-1.5 rounded-full bg-mist/60 overflow-hidden">
-              <div className={`h-1.5 rounded-full transition-all ${geminiPct > 80 ? 'bg-red-400' : 'bg-gradient-accent'}`} style={{ width: `${geminiPct}%` }} />
             </div>
           </div>
         </div>
@@ -432,7 +428,7 @@ if (!data) throw new Error('Failed to generate challenge');
             className="w-full inline-flex items-center justify-center gap-2 rounded-full bg-gradient-accent px-6 py-3.5 text-sm font-medium text-white transition-all hover:scale-[1.02] disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <Sparkles className="h-4 w-4" />
-            Generate Challenge
+            Get Challenge
             <ArrowRight className="h-4 w-4" />
           </button>
         </div>
@@ -442,7 +438,7 @@ if (!data) throw new Error('Failed to generate challenge');
       {phase === 'loading' && (
         <div className="rounded-2xl border border-mist bg-white p-12 flex flex-col items-center gap-4">
           <Loader2 className="h-8 w-8 animate-spin text-coral" />
-          <p className="text-sm text-slatey">Generating your {level?.label} {language?.label} challenge...</p>
+          <p className="text-sm text-slatey">Finding a {level?.label} {language?.label} challenge...</p>
         </div>
       )}
 

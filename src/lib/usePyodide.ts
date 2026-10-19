@@ -3,7 +3,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 export type PyResult = { stdout: string; stderr: string; timedOut?: boolean };
 
-const RUN_TIMEOUT_MS = 20000; // includes downloading numpy/pandas on first use
+const RUN_TIMEOUT_MS = 20000; // the learner's code itself (packages are already loaded)
+const PREPARE_TIMEOUT_MS = 120000; // first-time download of numpy, pandas, scikit-learn
 const INIT_TIMEOUT_MS = 60000;
 
 export function usePyodide() {
@@ -56,9 +57,40 @@ export function usePyodide() {
     return readyRef.current;
   }, [kill]);
 
+  // Downloads the libraries the code imports (numpy, pandas, scikit-learn...).
+  // Uses its own, longer timeout so slow downloads are not mistaken for slow code.
+  const prepare = useCallback(
+    async (code: string): Promise<void> => {
+      await warmUp();
+      const worker = workerRef.current;
+      if (!worker) throw new Error('Python is not available.');
+
+      const id = ++idRef.current;
+      return new Promise<void>((resolve, reject) => {
+        const timer = setTimeout(() => {
+          worker.removeEventListener('message', onMessage);
+          kill();
+          reject(new Error('Loading Python libraries took too long. Check your connection and try again.'));
+        }, PREPARE_TIMEOUT_MS);
+
+        const onMessage = (e: MessageEvent) => {
+          if (e.data.type === 'prepared' && e.data.id === id) {
+            clearTimeout(timer);
+            worker.removeEventListener('message', onMessage);
+            if (e.data.error) reject(new Error(e.data.error));
+            else resolve();
+          }
+        };
+        worker.addEventListener('message', onMessage);
+        worker.postMessage({ type: 'prepare', id, code });
+      });
+    },
+    [warmUp, kill],
+  );
+
   const runPython = useCallback(
     async (code: string, stdin = ''): Promise<PyResult> => {
-      await warmUp();
+      await prepare(code);
       const worker = workerRef.current;
       if (!worker) throw new Error('Python is not available.');
 
@@ -82,7 +114,7 @@ export function usePyodide() {
         worker.postMessage({ type: 'run', id, code, stdin });
       });
     },
-    [warmUp, kill],
+    [prepare, kill],
   );
 
   useEffect(() => () => kill(), [kill]);

@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Check, X, Mic, Code2, FolderGit2, Compass, BookOpen, Zap, BarChart3, Rocket, BadgeCheck } from 'lucide-react';
+import { ArrowRight, Check, Mic, Brain, FolderGit2, Compass, BookOpen, Zap, BarChart3, Rocket, BadgeCheck } from 'lucide-react';
 
-/* Drop this file in src/. Replaces Hero + adds new sections.
+/* Drop this file in src/ (same name your App.tsx imports from).
    All mock UI is labelled "Sample" — swap numbers for real screenshots later. */
 
 const QUIZ = '/career-readiness';
@@ -94,12 +94,12 @@ export function Hero() {
       <div className="mx-auto grid max-w-6xl items-center gap-12 px-6 lg:grid-cols-[1.1fr_0.9fr]">
         <div>
           <h1 className="text-4xl font-semibold leading-[1.08] tracking-tight text-ink sm:text-5xl lg:text-6xl">
-            Stop learning.
+            Stop collecting ML courses.
             <br />
             Start proving you're job-ready.
           </h1>
           <p className="mt-6 max-w-lg text-base leading-relaxed text-slatey sm:text-lg">
-            Learn what matters. Practice it. Build projects. Prove your skills. Prepare for interviews.
+            Learn what matters. Practice real machine learning in your browser. Build projects. Prove your skills. Prepare for interviews.
           </p>
           <div className="mt-9 flex flex-col items-start gap-4 sm:flex-row sm:items-center">
             <QuizButton />
@@ -116,15 +116,15 @@ export function Hero() {
           <Frame title="Your readiness">
             <div className="flex items-end justify-between">
               <div>
-                <p className="text-sm text-slatey">Frontend Developer path</p>
+                <p className="text-sm text-slatey">Machine Learning Engineer path</p>
                 <p className="mt-1 text-4xl font-semibold text-ink">64%</p>
               </div>
               <span className="rounded-full bg-coral/10 px-3 py-1 text-xs font-medium text-coral">Practicing</span>
             </div>
             <div className="mt-5 space-y-4">
-              <Bar label="JavaScript" pct={78} seen={seen} />
-              <Bar label="React" pct={61} seen={seen} />
-              <Bar label="Git / GitHub" pct={88} seen={seen} />
+              <Bar label="Python & NumPy" pct={78} seen={seen} />
+              <Bar label="Model evaluation" pct={61} seen={seen} />
+              <Bar label="scikit-learn" pct={52} seen={seen} />
             </div>
             <Link to={QUIZ} className="mt-6 flex items-center justify-between rounded-xl border border-coral/30 bg-coral/5 px-4 py-3 text-sm text-ink transition-colors hover:bg-coral/10">
               <span>Where do you stand? Find out free.</span>
@@ -139,8 +139,8 @@ export function Hero() {
 
 /* 2 ─ Before / After */
 export function BeforeAfter() {
-  const learned = ['React', 'Java', 'SQL', 'Git'];
-  const proved = ['Completed coding challenges', 'Built projects', 'GitHub evidence', 'Interview explanations', 'Demonstrated skills'];
+  const learned = ['Python', 'NumPy', 'Regression', 'Neural networks'];
+  const proved = ['Solved ML challenges (metrics, loss, models)', 'Built models from scratch', 'Shipped ML projects', 'GitHub evidence', 'Explained results in interviews'];
   return (
     <section className="py-12 lg:py-20">
       <div className="mx-auto max-w-5xl px-6">
@@ -171,11 +171,12 @@ export function BeforeAfter() {
     </section>
   );
 }
+
 /* 3 ─ The path */
 export function Path() {
   const steps = [
-    [Compass, 'Choose your direction'], [BookOpen, 'Learn from quality resources'], [Code2, 'Practice with AI challenges'], [Zap, 'Earn XP and skill evidence'],
-    [FolderGit2, 'Build real projects'], [Mic, 'Practice interviews'], [BarChart3, 'Track your readiness'], [Rocket, 'Build your career proof'],
+    [Compass, 'Choose your direction'], [BookOpen, 'Learn from quality resources'], [Brain, 'Practice ML in your browser'], [Zap, 'Earn XP and skill evidence'],
+    [FolderGit2, 'Build real ML projects'], [Mic, 'Practice interviews'], [BarChart3, 'Track your readiness'], [Rocket, 'Build your career proof'],
   ] as const;
   return (
     <section id="how-it-works" className="bg-white/40 py-12 lg:py-20">
@@ -201,11 +202,25 @@ export function Path() {
 
 /* 4 ─ Learning environment */
 export function Practice() {
+  const levels = ['Beginner', 'Intermediate', 'Pro', 'Master'];
   return (
-    <Split title="Don't just read it. Try it." text="Pick a skill and difficulty. Eteral gives you a practical challenge and a workspace to solve it. Pass and earn XP. Fail, see what went wrong, and try again.">
-      <Frame title="Python · Easy">
-        <p className="text-base font-semibold text-ink">Write a function that returns the largest number in a list.</p>
-        <pre className="mt-4 overflow-x-auto rounded-lg bg-ink p-4 text-xs leading-relaxed text-white/90">{`def largest(nums):\n    return max(nums)`}</pre>
+    <Split
+      title="Don't just read about machine learning. Build it."
+      text="Climb four levels, from data basics to building neural networks from scratch. Write real Python for ML right in your browser. Pass and earn XP. Fail, see what went wrong, and try again."
+    >
+      <Frame title="Machine Learning · Python">
+        <div className="flex flex-wrap gap-2">
+          {levels.map((l, i) => (
+            <span
+              key={l}
+              className={`rounded-full px-3 py-1 text-xs font-medium ${i === 1 ? 'bg-gradient-accent text-white' : 'border border-mist bg-paper text-slatey'}`}
+            >
+              {l}
+            </span>
+          ))}
+        </div>
+        <p className="mt-4 text-base font-semibold text-ink">Turn a list of model scores (logits) into probabilities with softmax.</p>
+        <pre className="mt-4 overflow-x-auto rounded-lg bg-ink p-4 text-xs leading-relaxed text-white/90">{`import numpy as np\n\ndef softmax(z):\n    e = np.exp(z - np.max(z))\n    return e / e.sum()`}</pre>
         <div className="mt-5 flex items-center justify-between">
           <span className="rounded-full bg-ink px-5 py-2 text-xs font-semibold text-white">Run</span>
           <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-coral"><Check className="h-4 w-4" />Passed +25 XP</span>
@@ -214,6 +229,7 @@ export function Practice() {
     </Split>
   );
 }
+
 /* 5 ─ Skill progression */
 export function Skills() {
   const [ref, seen] = useInView<HTMLDivElement>();
@@ -222,10 +238,10 @@ export function Skills() {
       <div ref={ref}>
         <Frame title="Skill progress">
           <div className="space-y-4">
-            <Bar label="JavaScript" pct={78} seen={seen} />
-            <Bar label="React" pct={61} seen={seen} />
-            <Bar label="SQL" pct={69} seen={seen} />
-            <Bar label="Git / GitHub" pct={88} seen={seen} />
+            <Bar label="Python" pct={88} seen={seen} />
+            <Bar label="NumPy & Pandas" pct={78} seen={seen} />
+            <Bar label="Model evaluation" pct={69} seen={seen} />
+            <Bar label="Neural networks" pct={61} seen={seen} />
           </div>
           <dl className="mt-6 grid grid-cols-2 gap-3 border-t border-mist pt-5 text-sm">
             {[['Challenges', '42'], ['Projects', '3'], ['Interview sessions', '11'], ['XP earned', '2,840']].map(([k, v]) => (
@@ -241,14 +257,14 @@ export function Skills() {
 /* 6 ─ Projects */
 export function ProjectsSection() {
   return (
-    <Split title="Turn skills into proof." text="Build projects based on your career path and track the skills you demonstrate through them.">
+    <Split title="Turn skills into proof." text="Build machine learning projects based on your career path and track the skills you demonstrate through them.">
       <div className="space-y-4">
-        <Frame title="Expense Tracker">
-          <p className="text-sm text-slatey">React · Supabase · API · GitHub</p>
+        <Frame title="House Price Predictor">
+          <p className="text-sm text-slatey">Python · Pandas · scikit-learn · GitHub</p>
           <p className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-ink"><BadgeCheck className="h-4 w-4 text-coral" />Completed</p>
         </Frame>
-        <Frame title="Portfolio Dashboard">
-          <p className="text-sm text-slatey">React · Authentication · SQL</p>
+        <Frame title="Spam Classifier">
+          <p className="text-sm text-slatey">Python · NLP · Model evaluation</p>
           <div className="mt-3 h-2 rounded-full bg-mist/70"><div className="h-2 w-[72%] rounded-full bg-gradient-accent" /></div>
           <p className="mt-2 text-xs text-slatey">In progress · 72%</p>
         </Frame>
@@ -260,14 +276,14 @@ export function ProjectsSection() {
 /* 7 ─ Interview */
 export function Interview() {
   return (
-    <Split flip title="Knowing the answer isn't enough. You need to explain it." text="Answer fresh interview questions out loud, then get feedback on clarity, filler words, structure, pace, and how well you explained the technical part.">
+    <Split flip title="Knowing the answer isn't enough. You need to explain it." text="Answer interview questions out loud, then get instant feedback on clarity, filler words, structure and pace.">
       <Frame title="Interview practice">
         <p className="text-sm text-slatey">Question</p>
-        <p className="mt-1 text-base font-semibold text-ink">"Explain a technical problem you solved."</p>
+        <p className="mt-1 text-base font-semibold text-ink">"How would you evaluate a classification model?"</p>
         <p className="mt-4 text-sm text-slatey">Your answer</p>
-        <p className="mt-1 rounded-lg bg-paper p-3 text-sm text-slatey">"So, um, our cart total was wrong, and I traced it to a rounding bug in…"</p>
+        <p className="mt-1 rounded-lg bg-paper p-3 text-sm text-slatey">"So, um, I'd start with accuracy, but if the classes are imbalanced then…"</p>
         <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
-          {[['Clarity', '84%'], ['Structure', '76%'], ['Filler words', '6'], ['Pace', 'Good']].map(([k, v]) => (
+          {[['Clarity', '8/10'], ['Structure', 'Clear'], ['Filler words', '6'], ['Pace', 'Good']].map(([k, v]) => (
             <div key={k} className="rounded-lg bg-paper px-3 py-2"><dt className="text-slatey">{k}</dt><dd className="font-semibold text-ink">{v}</dd></div>
           ))}
         </dl>
@@ -275,9 +291,15 @@ export function Interview() {
     </Split>
   );
 }
+
 /* 8 ─ Curated learning */
 export function Curated() {
-  const rows = [['JavaScript', 'MDN · freeCodeCamp · selected tutorials'], ['React', 'React documentation · MDN · selected resources']];
+  const rows = [
+    ['Python & data', 'Official docs · NumPy and Pandas guides · selected tutorials'],
+    ['Machine learning', 'scikit-learn documentation · Kaggle Learn · selected courses'],
+    ['Deep learning', 'fast.ai · 3Blue1Brown · selected resources'],
+    ['SQL for data', 'SQLBolt · selected tutorials'],
+  ];
   return (
     <section className="bg-white/40 py-12 lg:py-20">
       <div className="mx-auto max-w-5xl px-6">
@@ -294,15 +316,19 @@ export function Curated() {
     </section>
   );
 }
+
 /* 9 ─ Career profile */
 export function CareerProfile() {
   return (
-    <Split title="What do you have when you're done?" text="Not another certificate. Not \u201cI completed a React course,\u201d but \u201cI can demonstrate React\u201d: projects, GitHub, demonstrated skills, interview practice, and career evidence in one profile.">
+    <Split
+      title="What do you have when you're done?"
+      text="Not another certificate. Not “I completed a machine learning course,” but “I can demonstrate it”: projects, GitHub, demonstrated skills, interview practice, and career evidence in one profile."
+    >
       <Frame title="Your Eteral career profile">
-        <p className="text-lg font-semibold text-ink">Frontend Developer</p>
-        <p className="mt-1 text-sm text-slatey">React 82% · JavaScript 76% · Git 88% · Supabase 69%</p>
+        <p className="text-lg font-semibold text-ink">Machine Learning Engineer</p>
+        <p className="mt-1 text-sm text-slatey">Python 88% · NumPy & Pandas 78% · scikit-learn 64% · SQL 69%</p>
         <ul className="mt-5 grid grid-cols-2 gap-2 text-sm text-ink">
-          {['63 challenges', '4 projects', 'GitHub connected', '18 interview sessions', '4,820 XP'].map((t) => (
+          {['63 challenges', '4 ML projects', 'GitHub connected', '18 interview sessions', '4,820 XP'].map((t) => (
             <li key={t} className="flex items-center gap-2"><Check className="h-4 w-4 text-coral" />{t}</li>
           ))}
         </ul>
@@ -331,13 +357,3 @@ export function FinalCta() {
     </section>
   );
 }
-
-/* ── Wire-up in App.tsx ──
-   import { Hero, BeforeAfter, Path, Practice, Skills, ProjectsSection, Interview, Curated, CareerProfile, FinalCta } from './HomeSections';
-   Delete the old Hero function, then in LandingPage:
-   <main>
-     <Hero /><BeforeAfter /><Path /><Curated /><Practice /><Skills /><ProjectsSection /><Interview /><CareerProfile />
-     <Membership /><Freebies onNav={onNav} onRequireAuth={requireAuthForFreebie} /><Blog /><Trust /><FinalCta />
-   </main>
-   Header: make the desktop CTA <PrimaryButton onClick={() => navigate('/career-readiness')}>Take the Quiz</PrimaryButton>
-   (and the mobile menu item), so the quiz is the primary action everywhere. */

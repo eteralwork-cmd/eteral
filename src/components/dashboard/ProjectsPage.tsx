@@ -1,34 +1,22 @@
 import { useState } from 'react';
-import { FolderKanban, Plus, X, Loader2, ExternalLink, Trash2, CheckCircle2, Lightbulb, Lock } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { FolderKanban, Plus, X, Loader2, ExternalLink, Trash2, CheckCircle2, Lightbulb } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
 import { useDashboard } from '@/lib/useDashboard';
-import { useMembership } from '@/lib/membership';
 import { XP_REWARDS } from '@/lib/gamification';
+import { generateProjectIdea, type ProjectIdea } from '@/lib/projectIdeas';
 import type { Project } from '@/lib/useDashboard';
-
-type ProjectIdea = {
-  title: string;
-  description: string;
-  problem_solved: string;
-  skills_used: string[];
-  approach: string;
-  difficulty: string;
-  estimated_time: string;
-};
 
 export function ProjectsPage({ dashboard }: { dashboard: ReturnType<typeof useDashboard> }) {
   const { user } = useAuth();
-  const { isStandard } = useMembership();
   const { projects, userSkills, skills, profile, awardXp, completeDailyTask, refresh } = dashboard;
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Project | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [ideaLoading, setIdeaLoading] = useState(false);
   const [ideaError, setIdeaError] = useState<string | null>(null);
   const [projectIdea, setProjectIdea] = useState<ProjectIdea | null>(null);
+  const [shownIdeas, setShownIdeas] = useState<string[]>([]);
 
   // Form state
   const [title, setTitle] = useState('');
@@ -87,7 +75,14 @@ export function ProjectsPage({ dashboard }: { dashboard: ReturnType<typeof useDa
       skills_used: selectedSkills,
       link: link || null,
       lessons_learned: lessonsLearned || null,
-      depth_score: computeDepthScore({ title, description, problem_solved, role_description, skills_used: selectedSkills, link }),
+      depth_score: computeDepthScore({
+        title,
+        description,
+        problem_solved: problemSolved,
+        role_description: roleDesc,
+        skills_used: selectedSkills,
+        link,
+      }),
       updated_at: new Date().toISOString(),
     };
 
@@ -113,34 +108,31 @@ export function ProjectsPage({ dashboard }: { dashboard: ReturnType<typeof useDa
     await refresh();
   };
 
-  const handleGenerateIdea = async () => {
-    if (!isStandard) return;
-    if (verifiedSkills.length === 0) {
-      setIdeaError('Add and verify at least one skill first, then try again.');
+  // Rule-based idea generator: runs instantly in the browser, no API call.
+  const handleGenerateIdea = () => {
+    setIdeaError(null);
+
+    // Prefer verified skills; fall back to any skill the user has added.
+    const source = verifiedSkills.length > 0 ? verifiedSkills : userSkills;
+    if (source.length === 0) {
+      setIdeaError('Add at least one skill from the Skill Track first, then try again.');
       return;
     }
-    setIdeaLoading(true);
-    setIdeaError(null);
-    setProjectIdea(null);
 
-    try {
-      const skillsPayload = verifiedSkills.map((us) => {
-        const s = skills.find((sk) => sk.id === us.skill_id);
-        return { label: s?.label ?? 'Unknown', level: us.status };
-      });
+    const skillsPayload = source.map((us) => {
+      const s = skills.find((sk) => sk.id === us.skill_id);
+      return { label: s?.label ?? 'Unknown', level: us.status };
+    });
 
-      const { data, error: fnError } = await supabase.functions.invoke('project-idea-generate', {
-        body: { skills: skillsPayload, track: profile?.target_track ?? 'fullstack' },
-      });
+    const idea = generateProjectIdea({
+      track: profile?.target_track ?? 'fullstack',
+      skills: skillsPayload,
+      trackSkillLabels: trackSkills.map((s) => s.label),
+      exclude: shownIdeas,
+    });
 
-      if (fnError) throw fnError;
-      if (!data) throw new Error('No idea returned');
-      setProjectIdea(data as ProjectIdea);
-    } catch (err) {
-      setIdeaError(err instanceof Error ? err.message : 'Failed to generate idea. Please try again.');
-    } finally {
-      setIdeaLoading(false);
-    }
+    setProjectIdea(idea);
+    setShownIdeas((prev) => [...prev.filter((t) => t !== idea.title), idea.title]);
   };
 
   const handleLogIdea = () => {
@@ -169,24 +161,13 @@ export function ProjectsPage({ dashboard }: { dashboard: ReturnType<typeof useDa
           <p className="mt-1 text-sm text-slatey">Turn skills into tangible proof. Build real projects, not padding.</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          {isStandard ? (
-            <button
-              onClick={handleGenerateIdea}
-              disabled={ideaLoading}
-              className="inline-flex items-center gap-2 rounded-full border border-coral/30 bg-gradient-to-br from-coral/5 to-sky/5 px-5 py-2.5 text-sm font-medium text-coral transition-all hover:scale-[1.02] disabled:opacity-60"
-            >
-              {ideaLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Lightbulb className="h-4 w-4" />}
-              {ideaLoading ? 'Generating...' : 'Idea Based on My Skills'}
-            </button>
-          ) : (
-            <Link
-              to="/membership"
-              className="inline-flex items-center gap-2 rounded-full border border-coral/30 bg-gradient-to-br from-coral/5 to-sky/5 px-5 py-2.5 text-sm font-medium text-coral transition-all hover:scale-[1.02]"
-            >
-              <Lock className="h-4 w-4" />
-              AI Ideas (Standard)
-            </Link>
-          )}
+          <button
+            onClick={handleGenerateIdea}
+            className="inline-flex items-center gap-2 rounded-full border border-coral/30 bg-gradient-to-br from-coral/5 to-sky/5 px-5 py-2.5 text-sm font-medium text-coral transition-all hover:scale-[1.02]"
+          >
+            <Lightbulb className="h-4 w-4" />
+            Idea Based on My Skills
+          </button>
           <button
             onClick={openNewForm}
             className="inline-flex items-center gap-2 rounded-full bg-gradient-accent px-5 py-2.5 text-sm font-medium text-white transition-all hover:scale-[1.02]"
@@ -203,18 +184,18 @@ export function ProjectsPage({ dashboard }: { dashboard: ReturnType<typeof useDa
         </div>
       )}
 
-      {/* AI Project Idea card */}
       {ideaError && (
         <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
           {ideaError}
         </div>
       )}
 
+      {/* Suggested project idea card */}
       {projectIdea && (
         <div className="rounded-2xl border border-coral/30 bg-gradient-to-br from-coral/5 via-white to-sky/5 p-5">
           <div className="flex items-center gap-2 mb-3">
             <Lightbulb className="h-5 w-5 text-coral" />
-            <h2 className="text-base font-semibold text-ink">AI-Generated Project Idea</h2>
+            <h2 className="text-base font-semibold text-ink">Suggested Project Idea</h2>
             <span className="ml-auto rounded-full bg-mist/60 px-2.5 py-1 text-xs font-medium text-slatey">
               {projectIdea.difficulty} · {projectIdea.estimated_time}
             </span>
@@ -237,7 +218,7 @@ export function ProjectsPage({ dashboard }: { dashboard: ReturnType<typeof useDa
               <p className="text-xs text-slatey leading-relaxed whitespace-pre-line">{projectIdea.approach}</p>
             </div>
           )}
-          <div className="mt-4 flex items-center gap-3">
+          <div className="mt-4 flex items-center gap-3 flex-wrap">
             <button
               onClick={handleLogIdea}
               className="inline-flex items-center gap-2 rounded-full bg-gradient-accent px-5 py-2.5 text-sm font-medium text-white transition-all hover:scale-[1.02]"
@@ -247,10 +228,9 @@ export function ProjectsPage({ dashboard }: { dashboard: ReturnType<typeof useDa
             </button>
             <button
               onClick={handleGenerateIdea}
-              disabled={ideaLoading}
-              className="inline-flex items-center gap-2 rounded-full border border-mist bg-white px-5 py-2.5 text-sm font-medium text-slatey hover:text-ink transition-colors disabled:opacity-60"
+              className="inline-flex items-center gap-2 rounded-full border border-mist bg-white px-5 py-2.5 text-sm font-medium text-slatey hover:text-ink transition-colors"
             >
-              {ideaLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Lightbulb className="h-4 w-4" />}
+              <Lightbulb className="h-4 w-4" />
               Try Another Idea
             </button>
             <button
@@ -293,7 +273,7 @@ export function ProjectsPage({ dashboard }: { dashboard: ReturnType<typeof useDa
                     <div className="mt-3 flex flex-wrap gap-1.5">
                       {p.skills_used.map((sid) => (
                         <span key={sid} className="rounded-full bg-mist/60 px-2.5 py-1 text-xs font-medium text-slatey">
-                          {verifiedSkillLabels.get(sid) ?? 'Skill'}
+                          {skills.find((s) => s.id === sid)?.label ?? verifiedSkillLabels.get(sid) ?? 'Skill'}
                         </span>
                       ))}
                     </div>

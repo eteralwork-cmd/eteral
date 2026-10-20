@@ -29,9 +29,9 @@ const FEATURES: FeatureRow[] = [
   { label: 'Job & application tracker',        free: false,       standard: true,        premium: true },
   { label: 'Member dashboard',                 free: false,       standard: true,        premium: true },
   { label: 'Standard-marked resources',        free: false,       standard: true,        premium: true },
-  { label: 'Coding challenges (AI-generated)', free: false, standard: true, premium: true },
-  { label: 'Learn resources directory',          free: true,        standard: true, premium: true },
-  { label: 'AI career clarity coach',          free: false,       standard: true,       premium: true },
+  { label: 'ML learning space & coding challenges', free: false,  standard: true,        premium: true },
+  { label: 'Learn resources directory',        free: true,        standard: true,        premium: true },
+  { label: 'Speaking clarity practice with instant feedback', free: false, standard: true, premium: true },
   { label: 'Interview prep & mock Q&A',        free: false,       standard: false,       premium: true },
   { label: 'LinkedIn & portfolio review',      free: false,       standard: false,       premium: true },
   { label: 'Salary negotiation playbook',      free: false,       standard: false,       premium: true },
@@ -268,7 +268,7 @@ export default function MembershipPricingPage() {
               <div className="h-2" />
               <h3 className="text-lg font-semibold text-ink dark:text-stone-100">Standard</h3>
               <div className="mt-2 flex items-baseline gap-1">
-                <span className="text-4xl font-semibold text-ink dark:text-stone-100">$15</span>
+                <span className="text-4xl font-semibold text-ink dark:text-stone-100">$5</span>
                 <span className="text-sm text-slatey dark:text-stone-400">/month</span>
               </div>
               <p className="mt-3 text-sm text-slatey dark:text-stone-400 leading-relaxed">

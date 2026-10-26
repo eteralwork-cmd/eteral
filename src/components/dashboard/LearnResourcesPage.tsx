@@ -1,116 +1,116 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Brain,
   Check,
+  ChevronDown,
   Code2,
   Database,
-  ExternalLink,
-  Rocket,
+  Lock,
   RotateCcw,
+  Rocket,
   Sigma,
-  Sparkles,
+  TrendingUp,
 } from 'lucide-react';
 
-type ResourceType = 'free' | 'paid';
+type RequirementKind = 'Challenges' | 'Quiz' | 'Project';
 
-type Step = {
+type Requirement = {
   id: string;
-  title: string;
-  description: string;
-  url: string;
-  type: ResourceType;
-  time: string;
+  label: string;
+  kind: RequirementKind;
 };
 
-type Stage = {
+type Level = {
   id: string;
   title: string;
-  goal: string;
+  outcome: string;
   icon: React.ReactNode;
-  steps: Step[];
+  requirements: Requirement[];
 };
 
-const STORAGE_KEY = 'learn-ml-pathway-progress';
+const STORAGE_KEY = 'eteral-ml-pathway-progress';
 
-const PATHWAY: Stage[] = [
+const LEVELS: Level[] = [
   {
-    id: 'python',
-    title: 'Python basics',
-    goal: 'Write small programs comfortably: functions, loops, lists, dictionaries, and reading files.',
+    id: 'l1',
+    title: 'Python foundation',
+    outcome: 'You can write and debug small Python programs on your own.',
     icon: <Code2 className="h-4 w-4" />,
-    steps: [
-      { id: 'py-kaggle', title: 'Kaggle Learn: Python', description: 'Short, hands-on lessons with exercises you run in the browser.', url: 'https://www.kaggle.com/learn/python', type: 'free', time: '~5 hours' },
-      { id: 'py-tutorial', title: 'Official Python tutorial', description: 'Fill in gaps on classes, modules, and error handling.', url: 'https://docs.python.org/3/tutorial/', type: 'free', time: '~8 hours' },
-      { id: 'py-practice', title: 'Solve 10 beginner problems', description: 'Practice on freeCodeCamp until loops and functions feel natural.', url: 'https://www.freecodecamp.org', type: 'free', time: '~6 hours' },
+    requirements: [
+      { id: 'l1-basics', label: 'Solve 10 challenges on variables, conditionals, and loops', kind: 'Challenges' },
+      { id: 'l1-functions', label: 'Solve 6 challenges on writing and calling functions', kind: 'Challenges' },
+      { id: 'l1-collections', label: 'Solve 8 challenges on lists, dictionaries, and comprehensions', kind: 'Challenges' },
+      { id: 'l1-project', label: 'Build a text analyzer that counts words and finds the most common ones', kind: 'Project' },
+      { id: 'l1-quiz', label: 'Score 80% or higher on the Level 1 quiz', kind: 'Quiz' },
     ],
   },
   {
-    id: 'math',
-    title: 'Math you need',
-    goal: 'Understand vectors, matrices, derivatives, and probability well enough to follow how models learn.',
+    id: 'l2',
+    title: 'Math for machine learning',
+    outcome: 'You can work with vectors, matrices, gradients, and probability in code.',
     icon: <Sigma className="h-4 w-4" />,
-    steps: [
-      { id: 'math-la', title: 'Essence of Linear Algebra', description: 'Visual, intuition-first video series on vectors and matrices.', url: 'https://www.3blue1brown.com/topics/linear-algebra', type: 'free', time: '~3 hours' },
-      { id: 'math-calc', title: 'Essence of Calculus', description: 'Build intuition for derivatives, the idea behind gradient descent.', url: 'https://www.3blue1brown.com/topics/calculus', type: 'free', time: '~3 hours' },
-      { id: 'math-stats', title: 'Statistics and probability', description: 'Distributions, averages, variance, and basic probability.', url: 'https://www.khanacademy.org/math/statistics-probability', type: 'free', time: '~15 hours' },
-      { id: 'math-mml', title: 'Mathematics for Machine Learning (book)', description: 'Optional deeper reference. Free to read online.', url: 'https://mml-book.github.io', type: 'free', time: 'Reference' },
+    requirements: [
+      { id: 'l2-vectors', label: 'Solve 8 challenges on vectors and matrices (dot product, matrix multiplication)', kind: 'Challenges' },
+      { id: 'l2-stats', label: 'Solve 8 challenges on mean, variance, standard deviation, and probability', kind: 'Challenges' },
+      { id: 'l2-gradient', label: 'Solve 5 challenges on derivatives and finding a minimum with gradient descent', kind: 'Challenges' },
+      { id: 'l2-project', label: 'Build a function that finds the minimum of a curve using gradient descent', kind: 'Project' },
+      { id: 'l2-quiz', label: 'Score 80% or higher on the Level 2 quiz', kind: 'Quiz' },
     ],
   },
   {
-    id: 'data',
-    title: 'Data tools',
-    goal: 'Load, clean, explore, and plot a dataset on your own.',
+    id: 'l3',
+    title: 'Data with NumPy and Pandas',
+    outcome: 'You can load, clean, and summarize a real dataset.',
     icon: <Database className="h-4 w-4" />,
-    steps: [
-      { id: 'data-numpy', title: 'NumPy quickstart', description: 'Arrays and vectorized operations, the base of every ML library.', url: 'https://numpy.org/doc/stable/user/quickstart.html', type: 'free', time: '~2 hours' },
-      { id: 'data-pandas', title: 'Kaggle Learn: Pandas', description: 'Select, filter, group, and clean tabular data.', url: 'https://www.kaggle.com/learn/pandas', type: 'free', time: '~4 hours' },
-      { id: 'data-viz', title: 'Matplotlib tutorials', description: 'Plot distributions and relationships before you model them.', url: 'https://matplotlib.org/stable/tutorials/index.html', type: 'free', time: '~3 hours' },
+    requirements: [
+      { id: 'l3-numpy', label: 'Solve 10 challenges on NumPy arrays and vectorized operations', kind: 'Challenges' },
+      { id: 'l3-pandas', label: 'Solve 10 challenges on Pandas: select, filter, sort, and group data', kind: 'Challenges' },
+      { id: 'l3-cleaning', label: 'Solve 6 challenges on missing values, duplicates, and wrong data types', kind: 'Challenges' },
+      { id: 'l3-project', label: 'Clean a messy dataset and report three findings from it', kind: 'Project' },
+      { id: 'l3-quiz', label: 'Score 80% or higher on the Level 3 quiz', kind: 'Quiz' },
     ],
   },
   {
-    id: 'core-ml',
-    title: 'Core machine learning',
-    goal: 'Train, evaluate, and compare classic models, and explain overfitting in your own words.',
+    id: 'l4',
+    title: 'Your first models',
+    outcome: 'You can train a model, measure it honestly, and explain why it over- or underfits.',
+    icon: <TrendingUp className="h-4 w-4" />,
+    requirements: [
+      { id: 'l4-split', label: 'Solve 5 challenges on splitting data into training and test sets', kind: 'Challenges' },
+      { id: 'l4-regression', label: 'Write linear regression from scratch with NumPy (6 challenges)', kind: 'Challenges' },
+      { id: 'l4-classification', label: 'Write logistic regression for classification from scratch (6 challenges)', kind: 'Challenges' },
+      { id: 'l4-metrics', label: 'Calculate accuracy, precision, recall, and error by hand (6 challenges)', kind: 'Challenges' },
+      { id: 'l4-project', label: 'Predict a numeric value end to end, from raw data to evaluated model', kind: 'Project' },
+      { id: 'l4-quiz', label: 'Score 80% or higher on the Level 4 quiz', kind: 'Quiz' },
+    ],
+  },
+  {
+    id: 'l5',
+    title: 'Neural networks',
+    outcome: 'You can explain how a neural network learns and build a small one yourself.',
     icon: <Brain className="h-4 w-4" />,
-    steps: [
-      { id: 'ml-crash', title: 'Google Machine Learning Crash Course', description: 'Clear intro to regression, classification, and evaluation.', url: 'https://developers.google.com/machine-learning/crash-course', type: 'free', time: '~15 hours' },
-      { id: 'ml-kaggle', title: 'Kaggle Learn: Intro to Machine Learning', description: 'Build your first model, then handle underfitting and overfitting.', url: 'https://www.kaggle.com/learn/intro-to-machine-learning', type: 'free', time: '~3 hours' },
-      { id: 'ml-sklearn', title: 'scikit-learn user guide', description: 'Learn the standard fit, predict, and score workflow.', url: 'https://scikit-learn.org/stable/user_guide.html', type: 'free', time: 'Ongoing' },
-      { id: 'ml-ng', title: 'Machine Learning Specialization', description: 'Andrew Ng\u2019s structured course. Audit for free or pay for a certificate.', url: 'https://www.coursera.org/specializations/machine-learning-introduction', type: 'paid', time: '~2 months' },
-      { id: 'ml-homl', title: 'Hands-On Machine Learning notebooks', description: 'Free code companion to the book. Run the chapters you care about.', url: 'https://github.com/ageron/handson-ml3', type: 'free', time: 'Ongoing' },
+    requirements: [
+      { id: 'l5-neuron', label: 'Solve 6 challenges on a single neuron and activation functions', kind: 'Challenges' },
+      { id: 'l5-forward', label: 'Solve 6 challenges on the forward pass through multiple layers', kind: 'Challenges' },
+      { id: 'l5-backprop', label: 'Solve 6 challenges on backpropagation and weight updates', kind: 'Challenges' },
+      { id: 'l5-project', label: 'Train a two-layer neural network from scratch that solves XOR', kind: 'Project' },
+      { id: 'l5-quiz', label: 'Score 80% or higher on the Level 5 quiz', kind: 'Quiz' },
     ],
   },
   {
-    id: 'deep-learning',
-    title: 'Deep learning intro',
-    goal: 'Understand how a neural network trains and build one in PyTorch.',
-    icon: <Sparkles className="h-4 w-4" />,
-    steps: [
-      { id: 'dl-3b1b', title: 'Neural Networks (3Blue1Brown)', description: 'See what a neural network does and how backpropagation works.', url: 'https://www.3blue1brown.com/topics/neural-networks', type: 'free', time: '~1.5 hours' },
-      { id: 'dl-pytorch', title: 'PyTorch tutorials', description: 'Tensors, autograd, and training your first model.', url: 'https://pytorch.org/tutorials/', type: 'free', time: '~6 hours' },
-      { id: 'dl-fastai', title: 'Practical Deep Learning for Coders', description: 'Top-down course: train real image and text models early.', url: 'https://course.fast.ai', type: 'free', time: '~30 hours' },
-      { id: 'dl-karpathy', title: 'Neural Networks: Zero to Hero', description: 'Build a neural network from scratch, step by step.', url: 'https://karpathy.ai/zero-to-hero.html', type: 'free', time: '~15 hours' },
-    ],
-  },
-  {
-    id: 'projects',
-    title: 'Build and show your work',
-    goal: 'Finish projects you can link in a portfolio or resume.',
+    id: 'l6',
+    title: 'Capstone project',
+    outcome: 'You have one finished ML project that proves you can do the work.',
     icon: <Rocket className="h-4 w-4" />,
-    steps: [
-      { id: 'proj-titanic', title: 'Titanic competition on Kaggle', description: 'Predict survival, submit to the leaderboard, and iterate on features.', url: 'https://www.kaggle.com/competitions/titanic', type: 'free', time: '~6 hours' },
-      { id: 'proj-own', title: 'Model a dataset you care about', description: 'Pick your own data, define a question, train, and write up results.', url: 'https://www.kaggle.com/datasets', type: 'free', time: '~15 hours' },
-      { id: 'proj-publish', title: 'Publish a project write-up on GitHub', description: 'Add a README that explains the problem, method, and what you learned.', url: 'https://github.com', type: 'free', time: '~3 hours' },
+    requirements: [
+      { id: 'l6-frame', label: 'Choose a dataset and write the problem you are solving in two sentences', kind: 'Project' },
+      { id: 'l6-baseline', label: 'Build a simple baseline model and record its score', kind: 'Project' },
+      { id: 'l6-improve', label: 'Improve on the baseline and show what changed the score', kind: 'Project' },
+      { id: 'l6-writeup', label: 'Write up the problem, method, results, and limits in plain language', kind: 'Project' },
+      { id: 'l6-quiz', label: 'Pass the final assessment with 80% or higher', kind: 'Quiz' },
     ],
   },
 ];
-
-const FILTERS = [
-  { label: 'All resources', value: 'all' },
-  { label: 'Free only', value: 'free' },
-] as const;
-
-type FilterValue = (typeof FILTERS)[number]['value'];
 
 function loadProgress(): Record<string, boolean> {
   try {
@@ -122,8 +122,8 @@ function loadProgress(): Record<string, boolean> {
 }
 
 export function LearnResourcesPage() {
-  const [filter, setFilter] = useState<FilterValue>('all');
   const [done, setDone] = useState<Record<string, boolean>>(loadProgress);
+  const [open, setOpen] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     try {
@@ -133,37 +133,36 @@ export function LearnResourcesPage() {
     }
   }, [done]);
 
-  const stages = useMemo(
-    () =>
-      PATHWAY.map((stage) => ({
-        ...stage,
-        steps: stage.steps.filter((s) => filter === 'all' || s.type === filter),
-      })).filter((stage) => stage.steps.length > 0),
-    [filter],
-  );
-
-  const allSteps = stages.flatMap((s) => s.steps);
-  const completed = allSteps.filter((s) => done[s.id]).length;
-  const percent = allSteps.length ? Math.round((completed / allSteps.length) * 100) : 0;
+  const passed = LEVELS.map((level) => level.requirements.every((r) => done[r.id]));
+  const currentIndex = passed.findIndex((p) => !p);
+  const levelsPassed = passed.filter(Boolean).length;
+  const percent = Math.round((levelsPassed / LEVELS.length) * 100);
 
   const toggle = (id: string) => setDone((prev) => ({ ...prev, [id]: !prev[id] }));
-  const reset = () => setDone({});
+  const reset = () => {
+    setDone({});
+    setOpen({});
+  };
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight text-ink">Machine learning pathway</h1>
         <p className="mt-1 text-sm text-slatey">
-          A step-by-step route from your first Python script to a portfolio project. Work through the stages in order and check off each step as you finish it.
+          Six levels from your first line of Python to a finished ML project. Complete every requirement in a level to pass it and unlock the next one.
         </p>
       </div>
 
       <div className="rounded-2xl border border-mist bg-white p-5">
         <div className="flex items-baseline justify-between gap-3">
           <p className="text-sm font-semibold text-ink">
-            {completed} of {allSteps.length} steps complete
+            {levelsPassed === LEVELS.length
+              ? 'All levels passed'
+              : `Level ${currentIndex + 1} of ${LEVELS.length} in progress`}
           </p>
-          <p className="text-sm text-slatey">{percent}%</p>
+          <p className="text-sm text-slatey">
+            {levelsPassed} of {LEVELS.length} passed
+          </p>
         </div>
         <div
           className="mt-3 h-2 w-full overflow-hidden rounded-full bg-mist"
@@ -171,110 +170,103 @@ export function LearnResourcesPage() {
           aria-valuenow={percent}
           aria-valuemin={0}
           aria-valuemax={100}
-          aria-label="Overall pathway progress"
+          aria-label="Levels passed"
         >
           <div className="h-full rounded-full bg-gradient-accent transition-all" style={{ width: `${percent}%` }} />
         </div>
-      </div>
-
-      <div className="flex flex-wrap items-center gap-2">
-        {FILTERS.map((f) => (
+        <div className="mt-3 flex justify-end">
           <button
-            key={f.value}
-            onClick={() => setFilter(f.value)}
-            className={`rounded-full px-4 py-2 text-sm font-medium transition-all ${
-              filter === f.value
-                ? 'bg-gradient-accent text-white'
-                : 'border border-mist bg-white text-slatey hover:border-ink/20 hover:text-ink'
-            }`}
+            onClick={reset}
+            disabled={Object.values(done).every((v) => !v)}
+            className="inline-flex items-center gap-1.5 rounded-full border border-mist bg-white px-3 py-1.5 text-xs font-medium text-slatey transition-all hover:border-ink/20 hover:text-ink disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {f.label}
+            <RotateCcw className="h-3 w-3" />
+            Reset progress
           </button>
-        ))}
-        <button
-          onClick={reset}
-          disabled={completed === 0}
-          className="ml-auto inline-flex items-center gap-1.5 rounded-full border border-mist bg-white px-4 py-2 text-sm font-medium text-slatey transition-all hover:border-ink/20 hover:text-ink disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <RotateCcw className="h-3.5 w-3.5" />
-          Reset progress
-        </button>
+        </div>
       </div>
 
-      <ol className="space-y-8">
-        {stages.map((stage, index) => {
-          const stageDone = stage.steps.filter((s) => done[s.id]).length;
-          const stageComplete = stageDone === stage.steps.length;
+      <ol className="space-y-4">
+        {LEVELS.map((level, index) => {
+          const isPassed = passed[index];
+          const isLocked = index > 0 && !passed[index - 1];
+          const isCurrent = index === currentIndex;
+          const doneCount = level.requirements.filter((r) => done[r.id]).length;
+          const isOpen = !isLocked && (open[level.id] ?? isCurrent);
 
           return (
-            <li key={stage.id} className="space-y-3">
-              <div className="flex items-start gap-3">
+            <li
+              key={level.id}
+              className={`rounded-2xl border bg-white transition-all ${
+                isCurrent ? 'border-ink/20 shadow-md' : 'border-mist'
+              } ${isLocked ? 'opacity-60' : ''}`}
+            >
+              <button
+                onClick={() => !isLocked && setOpen((prev) => ({ ...prev, [level.id]: !isOpen }))}
+                disabled={isLocked}
+                aria-expanded={isOpen}
+                className="flex w-full items-start gap-3 p-5 text-left disabled:cursor-not-allowed"
+              >
                 <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-accent text-white">
-                  {stageComplete ? <Check className="h-4 w-4" /> : stage.icon}
+                  {isLocked ? <Lock className="h-4 w-4" /> : isPassed ? <Check className="h-4 w-4" /> : level.icon}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-baseline gap-x-2">
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                     <h2 className="text-base font-semibold text-ink">
-                      Stage {index + 1}: {stage.title}
+                      Level {index + 1}: {level.title}
                     </h2>
-                    <span className="text-xs text-slatey">
-                      {stageDone}/{stage.steps.length} done
-                    </span>
+                    {isPassed && (
+                      <span className="rounded-full bg-green-100 px-2.5 py-1 text-[10px] font-medium text-green-700">Passed</span>
+                    )}
+                    {isLocked && (
+                      <span className="text-xs text-slatey">Pass Level {index} to unlock</span>
+                    )}
+                    {!isLocked && !isPassed && (
+                      <span className="text-xs text-slatey">
+                        {doneCount} of {level.requirements.length} done
+                      </span>
+                    )}
                   </div>
-                  <p className="mt-0.5 text-sm text-slatey">
-                    <span className="font-medium text-ink">Goal:</span> {stage.goal}
-                  </p>
+                  <p className="mt-0.5 text-sm text-slatey">{level.outcome}</p>
                 </div>
-              </div>
+                {!isLocked && (
+                  <ChevronDown
+                    className={`mt-1 h-4 w-4 shrink-0 text-slatey transition-transform ${isOpen ? 'rotate-180' : ''}`}
+                  />
+                )}
+              </button>
 
-              <ul className="space-y-2">
-                {stage.steps.map((step) => {
-                  const checked = !!done[step.id];
-                  return (
-                    <li
-                      key={step.id}
-                      className={`flex items-start gap-3 rounded-2xl border border-mist bg-white p-4 transition-all hover:border-ink/20 ${
-                        checked ? 'opacity-70' : ''
-                      }`}
-                    >
-                      <button
-                        role="checkbox"
-                        aria-checked={checked}
-                        aria-label={`Mark "${step.title}" as ${checked ? 'not done' : 'done'}`}
-                        onClick={() => toggle(step.id)}
-                        className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-coral ${
-                          checked ? 'border-transparent bg-gradient-accent text-white' : 'border-ink/30 bg-white hover:border-ink/60'
-                        }`}
-                      >
-                        {checked && <Check className="h-3.5 w-3.5" />}
-                      </button>
-
-                      <div className="min-w-0 flex-1">
-                        <a
-                          href={step.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="group inline-flex items-center gap-1.5"
-                        >
-                          <span className={`text-sm font-semibold text-ink ${checked ? 'line-through' : ''}`}>{step.title}</span>
-                          <ExternalLink className="h-3.5 w-3.5 shrink-0 text-slatey transition-colors group-hover:text-coral" />
-                        </a>
-                        <p className="mt-1 text-xs leading-relaxed text-slatey">{step.description}</p>
-                        <div className="mt-2 flex items-center gap-2">
-                          <span
-                            className={`inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-medium ${
-                              step.type === 'free' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
+              {isOpen && (
+                <div className="border-t border-mist px-5 pb-5 pt-4">
+                  <p className="mb-3 text-xs font-medium text-ink">To pass this level, complete:</p>
+                  <ul className="space-y-2">
+                    {level.requirements.map((req) => {
+                      const checked = !!done[req.id];
+                      return (
+                        <li key={req.id} className="flex items-start gap-3">
+                          <button
+                            role="checkbox"
+                            aria-checked={checked}
+                            aria-label={`Mark "${req.label}" as ${checked ? 'not done' : 'done'}`}
+                            onClick={() => toggle(req.id)}
+                            className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-coral ${
+                              checked
+                                ? 'border-transparent bg-gradient-accent text-white'
+                                : 'border-ink/30 bg-white hover:border-ink/60'
                             }`}
                           >
-                            {step.type === 'free' ? 'Free' : 'Paid'}
-                          </span>
-                          <span className="text-[11px] text-slatey">{step.time}</span>
-                        </div>
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
+                            {checked && <Check className="h-3.5 w-3.5" />}
+                          </button>
+                          <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1">
+                            <span className={`text-sm text-ink ${checked ? 'text-slatey line-through' : ''}`}>{req.label}</span>
+                            <span className="rounded-full bg-mist px-2 py-0.5 text-[10px] font-medium text-slatey">{req.kind}</span>
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              )}
             </li>
           );
         })}

@@ -4,17 +4,28 @@ import React, { useEffect, useState } from "react";
  * Terms & Conditions page for Eteral (eteralwork.com)
  *
  * Self-contained: no required props, no external font imports.
- * Fill in the bracketed placeholders (contact email, dates, jurisdiction)
- * before publishing. Styled to match PrivacyPolicy.tsx.
+ * Before publishing: set the dates, the courts location, and check the
+ * REFUND_POLICY_URL matches your actual Cancellation & Refund Policy page.
+ * If you do NOT run ads, delete the "third-party" mention of ads in section 09.
  */
+
+const EFFECTIVE_DATE = "[Insert date]";
+const LAST_UPDATED = "[Insert date]";
+const CONTACT_EMAIL = "eteralwork@gmail.com";
+const COURTS_LOCATION = "[Insert city, state]";
+const REFUND_POLICY_URL = "/cancellation-refund-policy";
+const PRIVACY_POLICY_URL = "/privacy-policy";
 
 const SECTIONS = [
   { id: "acceptance", label: "Acceptance of terms" },
-  { id: "service", label: "The service" },
+  { id: "service", label: "What we offer" },
   { id: "accounts", label: "Accounts" },
-  { id: "membership", label: "Membership & billing" },
-  { id: "acceptable-use", label: "Acceptable use" },
+  { id: "purchases", label: "Purchases & payments" },
+  { id: "refunds", label: "Delivery & refunds" },
+  { id: "membership", label: "Membership" },
+  { id: "license", label: "License & acceptable use" },
   { id: "ip", label: "Intellectual property" },
+  { id: "third-party", label: "Third-party services" },
   { id: "disclaimers", label: "Disclaimers" },
   { id: "liability", label: "Limitation of liability" },
   { id: "termination", label: "Termination" },
@@ -90,160 +101,193 @@ export default function TermsAndConditions() {
         <main className="etc-main" style={styles.main}>
           <h1 style={styles.title}>Terms & Conditions</h1>
           <p style={styles.meta}>
-            Effective date: <Placeholder>Insert date</Placeholder> · Last updated:{" "}
-            <Placeholder>Insert date</Placeholder>
+            Effective date: {EFFECTIVE_DATE} · Last updated: {LAST_UPDATED}
           </p>
           <p style={styles.lede}>
             These Terms & Conditions ("Terms") govern your access to and use of{" "}
             <a href="https://eteralwork.com" style={styles.inlineLink}>
               eteralwork.com
             </a>{" "}
-            and its membership services (together, the "Service"), operated by Eteral
-            ("Eteral," "we," "us," or "our"). By creating an account or using the
-            Service, you agree to these Terms.
+            (the "Site"), operated by Eteral ("Eteral," "we," "us," or "our"). By
+            creating an account, buying from us, or otherwise using the Site, you
+            agree to these Terms and our{" "}
+            <a href={PRIVACY_POLICY_URL} style={styles.inlineLink}>
+              Privacy Policy
+            </a>
+            .
           </p>
 
           <Section id="acceptance" number="01" title="Acceptance of terms">
             <p style={styles.p}>
-              By accessing or using the Service, you confirm that you can form a
-              binding contract with Eteral, that you accept these Terms, and that you
-              agree to comply with them. If you don't agree, please don't use the
-              Service.
+              By using the Site you confirm that you are legally able to enter into a
+              binding contract and that you accept these Terms. If you are under 18,
+              you may use the Site only with the involvement of a parent or guardian.
+              If you do not agree, please do not use the Site.
             </p>
           </Section>
 
-          <Section id="service" number="02" title="The service">
+          <Section id="service" number="02" title="What we offer">
             <p style={styles.p}>
-              Eteral provides a career-readiness membership: resources, tools, and
-              guidance to help you become career-ready. We may add, change, or remove
-              features from the Service at any time, and we don't guarantee that any
-              specific feature will remain available.
+              Eteral sells small digital notes and study resources aimed at tech
+              students and new graduates, and may offer a paid membership in the
+              future (see <a href="#membership" style={styles.inlineLink}>Membership</a>
+              ). We may add, change, or remove products and features at any time.
+              Product descriptions are provided in good faith, but we do not guarantee
+              they are free of errors.
             </p>
           </Section>
 
           <Section id="accounts" number="03" title="Accounts">
             <p style={styles.p}>
               You can create an account with Google sign-in or with an email address
-              and password. You're responsible for:
+              and password. You are responsible for:
             </p>
             <ul style={styles.ul}>
-              <li>Keeping your login credentials confidential</li>
+              <li>Keeping your login details confidential</li>
               <li>All activity that happens under your account</li>
-              <li>Providing accurate, current information when you register</li>
+              <li>Giving accurate, current information when you register</li>
             </ul>
             <p style={styles.p}>
-              Let us know right away if you believe your account has been accessed
-              without your permission.
+              Tell us right away if you think your account has been accessed without
+              your permission.
             </p>
           </Section>
 
-          <Section id="membership" number="04" title="Membership & billing">
-            <h3 style={styles.h3}>Subscriptions</h3>
+          <Section id="purchases" number="04" title="Purchases & payments">
             <p style={styles.p}>
-              Membership is offered on a subscription basis. By subscribing, you
-              authorize us to charge your chosen payment method on a recurring basis
-              (e.g., monthly or annually) until you cancel.
-            </p>
-
-            <h3 style={styles.h3}>Payment processing</h3>
-            <p style={styles.p}>
-              All payments are handled by <strong>Razorpay</strong>. We don't
-              collect or store your full card details — Razorpay processes these
-              directly under its own terms and privacy policy.
-            </p>
-
-            <h3 style={styles.h3}>Cancellation</h3>
-            <p style={styles.p}>
-              You can cancel your membership at any time from your account settings.
-              Cancellation takes effect at the end of your current billing period, and
-              you'll keep access until then.
-            </p>
-
-            <h3 style={styles.h3}>Refunds</h3>
-            <p style={styles.p}>
-              <Placeholder>
-                Insert your refund policy — e.g., "Payments are non-refundable except
-                where required by law" or a specific refund window
-              </Placeholder>
-              .
-            </p>
-
-            <h3 style={styles.h3}>Price changes</h3>
-            <p style={styles.p}>
-              We may change membership pricing from time to time. We'll notify active
-              members in advance of any change that affects them.
+              Prices are shown on the Site in the currency stated at checkout and may
+              change at any time, but a change will not affect an order you have
+              already completed. Payments are processed by <strong>Razorpay</strong>.
+              We never see or store your full card details; Razorpay handles them
+              under its own terms and privacy policy. An order is complete once your
+              payment succeeds. If a payment fails or is reversed, we may withdraw
+              access to the product.
             </p>
           </Section>
 
-          <Section id="acceptable-use" number="05" title="Acceptable use">
-            <p style={styles.p}>When using the Service, you agree not to:</p>
+          <Section id="refunds" number="05" title="Delivery & refunds">
+            <p style={styles.p}>
+              Our products are digital. After a successful payment, you get access
+              through your account (or by email) right away or within a short time. No
+              physical goods are shipped.
+            </p>
+            <p style={styles.p}>
+              Because digital content cannot be returned once accessed, refunds are
+              handled under our{" "}
+              <a href={REFUND_POLICY_URL} style={styles.inlineLink}>
+                Cancellation & Refund Policy
+              </a>
+              , which forms part of these Terms. If you were charged but did not get
+              access, or were charged twice, email us at{" "}
+              <a href={`mailto:${CONTACT_EMAIL}`} style={styles.inlineLink}>
+                {CONTACT_EMAIL}
+              </a>{" "}
+              and we will fix it or refund you.
+            </p>
+          </Section>
+
+          <Section id="membership" number="06" title="Membership">
+            <p style={styles.p}>
+              We plan to offer a paid membership but have not launched it yet. If we
+              do, the price, billing cycle, benefits, and cancellation terms will be
+              shown clearly before you subscribe, and we will update these Terms
+              before it goes live. Recurring charges will only start with your clear
+              consent at checkout, and you will be able to cancel before the next
+              billing date.
+            </p>
+          </Section>
+
+          <Section id="license" number="07" title="License & acceptable use">
+            <p style={styles.p}>
+              When you buy a note, you receive a limited, personal, non-exclusive,
+              non-transferable license to view and use it for your own learning. You
+              agree not to:
+            </p>
             <ul style={styles.ul}>
-              <li>Use the Service for any unlawful purpose</li>
-              <li>Share your account or membership access with others</li>
-              <li>Copy, resell, or redistribute Eteral's content without permission</li>
-              <li>Attempt to disrupt, reverse-engineer, or gain unauthorized access to the Service</li>
-              <li>Upload harmful code or interfere with other users' use of the Service</li>
+              <li>Copy, resell, share, publish, or redistribute our notes or content</li>
+              <li>Share your account or purchased access with others</li>
+              <li>Use the Site for any unlawful purpose</li>
+              <li>Attempt to disrupt, reverse-engineer, scrape, or gain unauthorized access to the Site</li>
+              <li>Upload harmful code or interfere with other users</li>
             </ul>
           </Section>
 
-          <Section id="ip" number="06" title="Intellectual property">
+          <Section id="ip" number="08" title="Intellectual property">
             <p style={styles.p}>
-              The Service, including its content, design, and branding, is owned by
-              Eteral and protected by intellectual property laws. Your membership
-              gives you a limited, personal, non-transferable license to use the
-              Service — it doesn't transfer any ownership rights to you.
+              The Site, its notes, text, design, and branding are owned by Eteral or
+              its licensors and protected by intellectual property laws. Buying a
+              product does not transfer any ownership rights to you.
             </p>
           </Section>
 
-          <Section id="disclaimers" number="07" title="Disclaimers">
+          <Section id="third-party" number="09" title="Third-party services">
             <p style={styles.p}>
-              The Service is provided "as is" and "as available," without warranties
-              of any kind. We don't guarantee that the Service will be uninterrupted,
-              error-free, or that it will lead to any particular career outcome — the
-              tools and guidance we provide support your job search, but the results
-              depend on many factors outside our control.
+              The Site relies on third-party services such as Google (sign-in and
+              advertising), Razorpay (payments), and our hosting and database
+              providers. These providers have their own terms and policies, and we are
+              not responsible for their services. The Site may display ads served by
+              Google; we do not control the content of those ads or the websites they
+              link to.
             </p>
           </Section>
 
-          <Section id="liability" number="08" title="Limitation of liability">
+          <Section id="disclaimers" number="10" title="Disclaimers">
             <p style={styles.p}>
-              To the fullest extent permitted by law, Eteral won't be liable for any
+              The Site and our products are provided "as is" and "as available,"
+              without warranties of any kind. Our notes are for educational purposes
+              only. We do not guarantee that they are complete or error-free, that the
+              Site will always be available, or that using them will lead to any
+              particular exam, job, or career outcome. Results depend on many factors
+              outside our control.
+            </p>
+          </Section>
+
+          <Section id="liability" number="11" title="Limitation of liability">
+            <p style={styles.p}>
+              To the fullest extent permitted by law, Eteral is not liable for any
               indirect, incidental, or consequential damages arising from your use of
-              the Service. Our total liability for any claim relating to the Service
-              is limited to the amount you paid us in the 12 months before the claim
-              arose.
+              the Site or our products. Our total liability for any claim is limited
+              to the amount you paid us for the product in question. Nothing in these
+              Terms limits any right you have under applicable consumer protection
+              law that cannot be excluded.
             </p>
           </Section>
 
-          <Section id="termination" number="09" title="Termination">
+          <Section id="termination" number="12" title="Termination">
             <p style={styles.p}>
-              We may suspend or terminate your account if you violate these Terms. You
-              can stop using the Service and cancel your membership at any time. Terms
-              that by their nature should survive termination (like intellectual
-              property and limitation of liability) will continue to apply.
+              We may suspend or close your account if you break these Terms (for
+              example, by sharing or reselling our content). You can stop using the
+              Site and ask us to delete your account at any time. Sections that by
+              their nature should continue after termination, such as intellectual
+              property and limitation of liability, will continue to apply.
             </p>
           </Section>
 
-          <Section id="governing-law" number="10" title="Governing law">
+          <Section id="governing-law" number="13" title="Governing law">
             <p style={styles.p}>
-              These Terms are governed by the laws of{" "}
-              <Placeholder>insert jurisdiction</Placeholder>, without regard to
-              conflict-of-law principles.
+              These Terms are governed by the laws of India. Any dispute will be
+              subject to the exclusive jurisdiction of the courts at{" "}
+              <Placeholder>{COURTS_LOCATION}</Placeholder>, India. Before starting any
+              formal action, we encourage you to contact us so we can try to resolve
+              the issue directly.
             </p>
           </Section>
 
-          <Section id="changes" number="11" title="Changes to these terms">
+          <Section id="changes" number="14" title="Changes to these terms">
             <p style={styles.p}>
-              We may update these Terms from time to time. We'll post the updated
-              version here with a new "Last updated" date. Continuing to use the
-              Service after changes take effect means you accept the updated Terms.
+              We may update these Terms from time to time. We will post the new
+              version here with an updated "Last updated" date. If you keep using the
+              Site after changes take effect, you accept the updated Terms.
             </p>
           </Section>
 
-          <Section id="contact" number="12" title="Contact us">
+          <Section id="contact" number="15" title="Contact us">
             <p style={styles.p}>Questions about these Terms? Reach us at:</p>
             <p style={styles.p}>
-              Email: <Placeholder>eteralwork@gmail.com</Placeholder>
+              Email:{" "}
+              <a href={`mailto:${CONTACT_EMAIL}`} style={styles.inlineLink}>
+                {CONTACT_EMAIL}
+              </a>
               <br />
               Website:{" "}
               <a href="https://eteralwork.com" style={styles.inlineLink}>
@@ -282,7 +326,7 @@ function Section({
 }
 
 function Placeholder({ children }: { children: React.ReactNode }) {
-  return <span style={styles.placeholder}>[{children}]</span>;
+  return <span style={styles.placeholder}>{children}</span>;
 }
 
 const COLORS = {
@@ -295,13 +339,14 @@ const COLORS = {
   tocMuted: "#8B8779",
 };
 
+const SANS = 'system-ui, -apple-system, "Segoe UI", sans-serif';
+
 const styles: Record<string, React.CSSProperties> = {
   page: {
     background: COLORS.paper,
     color: COLORS.ink,
     minHeight: "100vh",
-    fontFamily:
-      '"Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif',
+    fontFamily: '"Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif',
   },
   header: {
     borderBottom: `1px solid ${COLORS.border}`,
@@ -326,11 +371,7 @@ const styles: Record<string, React.CSSProperties> = {
     textDecoration: "none",
     letterSpacing: "0.01em",
   },
-  headerLabel: {
-    fontFamily: 'system-ui, -apple-system, "Segoe UI", sans-serif',
-    fontSize: "0.85rem",
-    color: COLORS.inkSoft,
-  },
+  headerLabel: { fontFamily: SANS, fontSize: "0.85rem", color: COLORS.inkSoft },
   body: {
     maxWidth: 1040,
     margin: "0 auto",
@@ -339,28 +380,17 @@ const styles: Record<string, React.CSSProperties> = {
     gap: "3rem",
     padding: "0 1.5rem",
   },
-  toc: {
-    width: 220,
-    flexShrink: 0,
-    paddingTop: "3rem",
-  },
-  tocSticky: {
-    position: "sticky",
-    top: "5.5rem",
-  },
+  toc: { width: 220, flexShrink: 0, paddingTop: "3rem" },
+  tocSticky: { position: "sticky", top: "5.5rem" },
   tocEyebrow: {
-    fontFamily: 'system-ui, -apple-system, "Segoe UI", sans-serif',
+    fontFamily: SANS,
     fontSize: "0.75rem",
     color: COLORS.tocMuted,
     marginBottom: "0.9rem",
   },
-  tocList: {
-    listStyle: "none",
-    margin: 0,
-    padding: 0,
-  },
+  tocList: { listStyle: "none", margin: 0, padding: 0 },
   tocLink: {
-    fontFamily: 'system-ui, -apple-system, "Segoe UI", sans-serif',
+    fontFamily: SANS,
     fontSize: "0.85rem",
     textDecoration: "none",
     display: "flex",
@@ -369,15 +399,8 @@ const styles: Record<string, React.CSSProperties> = {
     paddingLeft: "0.75rem",
     lineHeight: 1.4,
   },
-  tocNum: {
-    color: COLORS.tocMuted,
-    fontVariantNumeric: "tabular-nums",
-  },
-  main: {
-    flex: 1,
-    maxWidth: 680,
-    padding: "3rem 0 5rem",
-  },
+  tocNum: { color: COLORS.tocMuted, fontVariantNumeric: "tabular-nums" },
+  main: { flex: 1, maxWidth: 680, padding: "3rem 0 5rem" },
   title: {
     fontSize: "2.4rem",
     fontWeight: 600,
@@ -385,7 +408,7 @@ const styles: Record<string, React.CSSProperties> = {
     letterSpacing: "-0.01em",
   },
   meta: {
-    fontFamily: 'system-ui, -apple-system, "Segoe UI", sans-serif',
+    fontFamily: SANS,
     fontSize: "0.85rem",
     color: COLORS.tocMuted,
     margin: "0 0 1.8rem",
@@ -398,9 +421,7 @@ const styles: Record<string, React.CSSProperties> = {
     paddingBottom: "2.5rem",
     borderBottom: `1px solid ${COLORS.border}`,
   },
-  section: {
-    marginBottom: "2.75rem",
-  },
+  section: { marginBottom: "2.75rem" },
   sectionHeading: {
     display: "flex",
     alignItems: "baseline",
@@ -408,30 +429,13 @@ const styles: Record<string, React.CSSProperties> = {
     marginBottom: "0.9rem",
   },
   sectionNum: {
-    fontFamily: 'system-ui, -apple-system, "Segoe UI", sans-serif',
+    fontFamily: SANS,
     fontSize: "0.85rem",
     color: COLORS.accent,
     fontVariantNumeric: "tabular-nums",
   },
-  h2: {
-    fontSize: "1.4rem",
-    fontWeight: 600,
-    margin: 0,
-    letterSpacing: "-0.005em",
-  },
-  h3: {
-    fontFamily: 'system-ui, -apple-system, "Segoe UI", sans-serif',
-    fontSize: "0.95rem",
-    fontWeight: 600,
-    color: COLORS.inkSoft,
-    margin: "1.4rem 0 0.5rem",
-  },
-  p: {
-    fontSize: "1.02rem",
-    lineHeight: 1.75,
-    color: COLORS.inkSoft,
-    margin: "0 0 0.9rem",
-  },
+  h2: { fontSize: "1.4rem", fontWeight: 600, margin: 0, letterSpacing: "-0.005em" },
+  p: { fontSize: "1.02rem", lineHeight: 1.75, color: COLORS.inkSoft, margin: "0 0 0.9rem" },
   ul: {
     margin: "0 0 0.9rem",
     paddingLeft: "1.3rem",
@@ -445,7 +449,7 @@ const styles: Record<string, React.CSSProperties> = {
     textUnderlineOffset: "2px",
   },
   placeholder: {
-    fontFamily: 'system-ui, -apple-system, "Segoe UI", sans-serif',
+    fontFamily: SANS,
     background: COLORS.accentSoft,
     color: COLORS.accent,
     padding: "0.05rem 0.4rem",
@@ -453,7 +457,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: "0.92em",
   },
   footer: {
-    fontFamily: 'system-ui, -apple-system, "Segoe UI", sans-serif',
+    fontFamily: SANS,
     fontSize: "0.8rem",
     color: COLORS.tocMuted,
     marginTop: "3rem",

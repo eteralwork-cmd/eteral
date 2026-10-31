@@ -95,11 +95,12 @@ export function Hero() {
         <div>
           <h1 className="text-4xl font-semibold leading-[1.08] tracking-tight text-ink sm:text-5xl lg:text-6xl">
             Stop collecting ML courses.
+
             <br />
-            Start proving you're job-ready.
+            Start building real AI and Agents
           </h1>
           <p className="mt-6 max-w-lg text-base leading-relaxed text-slatey sm:text-lg">
-            Learn what matters. Practice real machine learning in your browser. Build projects. Prove your skills. Prepare for interviews.
+            Learn what matters. Practice real machine learning in your browser. Build projects. Prove your skills. Prepare for interviews. All tracked on your free learning dashboard.
           </p>
           <div className="mt-9 flex flex-col items-start gap-4 sm:flex-row sm:items-center">
             <QuizButton />
@@ -205,7 +206,7 @@ export function Practice() {
   const levels = ['Beginner', 'Intermediate', 'Pro', 'Master'];
   return (
     <Split
-      title="Don't just read about machine learning. Build it."
+      title="Build AI. Don’t just consume it."
       text="Climb four levels, from data basics to building neural networks from scratch. Write real Python for ML right in your browser. Pass and earn XP. Fail, see what went wrong, and try again."
     >
       <Frame title="Machine Learning · Python">
@@ -303,9 +304,9 @@ export function Curated() {
   return (
     <section className="bg-white/40 py-12 lg:py-20">
       <div className="mx-auto max-w-5xl px-6">
-        <h2 className="text-3xl font-semibold tracking-tight text-ink sm:text-4xl">Learn it somewhere. Prove it here.</h2>
+        <h2 className="text-3xl font-semibold tracking-tight text-ink sm:text-4xl">Learn it your way. Prove it here.</h2>
         <p className="mt-4 max-w-xl text-base leading-relaxed text-slatey">
-          Eteral doesn't try to teach everything, because the internet already does. We point you to the best documentation, tutorials and creators for each skill, then make you demonstrate what you learned.
+          The internet has great tutorials, and we’ll point you to the best ones. When you want a faster path, our go to Notes break each skill down simply. Either way, you prove it on Eteral through challenges and projects.
         </p>
         <div className="mt-8 grid gap-4 sm:grid-cols-2">
           {rows.map(([k, v]) => (

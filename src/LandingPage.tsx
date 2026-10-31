@@ -149,7 +149,7 @@ export function Header({
     { label: 'Career Quiz', id: 'quiz', path: '/career-readiness' },
     { label: 'Membership', id: 'membership', path: '/membership' },
     { label: 'Dashboard', id: 'dashboard', path: '/dashboard' },
-    { label: 'Contact', id: 'contact' },
+    { label: 'Contact', id: '/contact' },
   ];
 
   const handleNavClick = (n: { id: string; path?: string }) => {

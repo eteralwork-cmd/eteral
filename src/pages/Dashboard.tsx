@@ -1,50 +1,26 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import {
-  Loader2,
-  ArrowLeft,
-  Settings,
-  TrendingUp,
-  Sparkles,
-  Clock,
-  AlertCircle,
-  FileText,
-  MessageSquare,
-  FolderKanban,
-  ListChecks,
-} from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useDashboard } from '@/lib/useDashboard';
 import { useMembership } from '@/lib/membership';
-import { useDashboardData } from '@/lib/useDashboardData';
-import { useAuth } from '@/lib/auth';
-import {
-  DASHBOARD_CATEGORIES,
-  computeOverallScore,
-  getCurrentStrength,
-  isStale,
-  getOldestUpdate,
-  getDailyQuestion,
-} from '@/lib/dashboard-data';
-import ScoreBreakdown from '@/components/dashboard/ScoreBreakdown';
-import QuestionOfTheDay from '@/components/dashboard/QuestionOfTheDay';
-import ConnectionTracker from '@/components/dashboard/ConnectionTracker';
-import TrackerSection from '@/components/dashboard/TrackerSection';
-import InterviewCards from '@/components/dashboard/InterviewCards';
-import ResumeSection from '@/components/dashboard/ResumeSection';
-import CareerClarityWorkbook from '@/components/dashboard/CareerClarityWorkbook';
-import WeeklyGoalCard from '@/components/dashboard/WeeklyGoalCard';
-import EterAlAssistant from '@/components/EterAlAssistant';
+import { DashboardLayout, DashboardLoader } from '@/components/dashboard/DashboardLayout';
+import { Onboarding } from '@/components/dashboard/Onboarding';
+import { OverviewPage } from '@/components/dashboard/OverviewPage';
+import { SkillTrackPage } from '@/components/dashboard/SkillTrackPage';
+import { ProjectsPage } from '@/components/dashboard/ProjectsPage';
+import { ClarityPage } from '@/components/dashboard/ClarityPage';
+import { getLevelForXp } from '@/lib/gamification';
+import { useLocation } from 'react-router-dom';
 
-type SectionId = 'overview' | 'resume' | 'interview' | 'projects' | 'skills';
+type DashboardView = 'overview' | 'skills' | 'projects' | 'clarity';
 
-const NAV_ITEMS: { id: SectionId; label: string; icon: typeof Sparkles }[] = [
-  { id: 'overview', label: 'Overview', icon: TrendingUp },
-  { id: 'resume', label: 'Resume Builder', icon: FileText },
-  { id: 'interview', label: 'Interview Prep', icon: MessageSquare },
-  { id: 'projects', label: 'Project Tracker', icon: FolderKanban },
-  { id: 'skills', label: 'Skill Set Management', icon: ListChecks },
-];
+function getViewById(path: string): DashboardView {
+  if (path.includes('/skills')) return 'skills';
+  if (path.includes('/projects')) return 'projects';
+  if (path.includes('/clarity')) return 'clarity';
+  return 'overview';
+}
 
 export default function Dashboard() {
+  const dashboard = useDashboard();
   const { isStandard } = useMembership();
   const { user } = useAuth();
   const {
@@ -65,19 +41,12 @@ export default function Dashboard() {
     scoreMap[s.category] = s.score;
   }
 
-  const hasScores = DASHBOARD_CATEGORIES.some((c) => typeof scoreMap[c.id] === 'number');
-  const overallScore = computeOverallScore(scoreMap);
-  const currentStrength = getCurrentStrength(scoreMap);
-  const oldestUpdate = getOldestUpdate(scores);
-  const stale = hasScores && isStale(oldestUpdate);
-  const dailyQuestion = getDailyQuestion(dailyQuestions);
+  useEffect(() => {
+    setView(getViewById(location.pathname));
+  }, [location.pathname]);
 
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-paper">
-        <Loader2 className="h-6 w-6 animate-spin text-slatey" />
-      </div>
-    );
+  if (dashboard.loading) {
+    return <DashboardLoader />;
   }
 
   return (

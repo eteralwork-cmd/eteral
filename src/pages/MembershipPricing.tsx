@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
 import { useMembership } from '@/lib/membership';
 import { startCheckout, cancelSubscription } from '@/lib/razorpay-client';
+import { track } from '@/Analytics';
 
 // ─── Plan feature definitions ────────────────────────────────────────────────
 
@@ -103,6 +104,7 @@ export default function MembershipPricingPage() {
     if (mode === 'signup') {
       const { error: err } = await supabase.auth.signUp({ email, password });
       if (err) { setAuthError(err.message); setAuthBusy(false); return; }
+      track('sign_up', { method: 'email' });
     } else {
       const { error: err } = await supabase.auth.signInWithPassword({ email, password });
       if (err) { setAuthError(err.message); setAuthBusy(false); return; }

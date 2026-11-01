@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Loader2, Mail, Lock } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { track } from '@/Analytics';
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -21,6 +22,7 @@ export default function LoginPage() {
     if (mode === 'signup') {
       const { error: err } = await supabase.auth.signUp({ email, password });
       if (err) { setError(err.message); setBusy(false); return; }
+      track('sign_up', { method: 'email' });
     } else {
       const { error: err } = await supabase.auth.signInWithPassword({ email, password });
       if (err) { setError(err.message); setBusy(false); return; }

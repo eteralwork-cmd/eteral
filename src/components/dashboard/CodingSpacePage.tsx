@@ -19,6 +19,7 @@ import { useMembership } from '@/lib/membership';
 import { useDashboard } from '@/lib/useDashboard';
 import { usePyodide } from '@/lib/usePyodide';
 import { XP_REWARDS } from '@/lib/gamification';
+import { track } from '@/Analytics';
 import PaywallCard from './PaywallCard';
 
 type Language = { label: string; value: string; judge0Id: number; runner: 'pyodide' | 'judge0' };
@@ -226,6 +227,7 @@ export function CodingSpacePage({ dashboard }: { dashboard: ReturnType<typeof us
 
       setTestResults(results);
       const allPassed = results.every((r) => r.passed);
+      track('challenge_submit', { level: challenge.level, passed: allPassed });
 
       if (user) {
         await supabase.from('coding_challenges').insert({

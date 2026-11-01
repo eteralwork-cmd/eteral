@@ -13,6 +13,7 @@ import {
   type SkillLevel,
 } from '@/lib/gamification';
 import type { Skill, SkillQuestion, UserSkill } from '@/lib/useDashboard';
+import { track } from '@/Analytics';
 
 export function SkillTrackPage({ dashboard }: { dashboard: ReturnType<typeof useDashboard> }) {
   const { user } = useAuth();
@@ -354,6 +355,7 @@ function QuizChallenge({ skill, userSkill, onClose, onComplete }: {
   const handleSubmit = () => {
     const score = computeScore();
     const passed = score >= 70;
+    track('quiz_complete', { quiz_id: skill.id, passed });
     setShowResults(true);
     onComplete(score, passed);
   };

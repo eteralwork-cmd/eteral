@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Flame,
@@ -19,6 +19,7 @@ import { useAuth } from '@/lib/auth';
 import { useDashboard } from '@/lib/useDashboard';
 import { useMembership } from '@/lib/membership';
 import { WEEKLY_XP_GOAL, XP_REWARDS } from '@/lib/gamification';
+import { track } from '@/Analytics';
 
 type Props = {
   dashboard: ReturnType<typeof useDashboard>;
@@ -188,17 +189,7 @@ export function OverviewPage({ dashboard }: Props) {
         {recentNotes.length > 0 && (
           <div className="mt-5 space-y-2.5">
             {recentNotes.map((note) => (
-              <div key={note.id} className="flex items-start gap-3 rounded-xl border border-mist bg-paper px-4 py-3">
-                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-mist/60 shrink-0">
-                  <BookOpen className="h-3.5 w-3.5 text-coral" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm text-ink leading-relaxed">{note.note_text}</p>
-                  <p className="mt-1 text-xs text-slatey">
-                    {new Date(note.note_date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-                  </p>
-                </div>
-              </div>
+              <DailyNoteEntry key={note.id} note={note} />
             ))}
           </div>
         )}
@@ -328,6 +319,31 @@ export function OverviewPage({ dashboard }: Props) {
           icon={<Code2 className="h-4 w-4" />}
           locked={!isStandard}
         />
+      </div>
+    </div>
+  );
+}
+
+function DailyNoteEntry({ note }: { note: ReturnType<typeof useDashboard>['dailyNotes'][number] }) {
+  const tracked = useRef(false);
+
+  useEffect(() => {
+    if (!tracked.current) {
+      track('note_view', { note_id: note.id });
+      tracked.current = true;
+    }
+  }, [note.id]);
+
+  return (
+    <div className="flex items-start gap-3 rounded-xl border border-mist bg-paper px-4 py-3">
+      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-mist/60 shrink-0">
+        <BookOpen className="h-3.5 w-3.5 text-coral" />
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="text-sm text-ink leading-relaxed">{note.note_text}</p>
+        <p className="mt-1 text-xs text-slatey">
+          {new Date(note.note_date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+        </p>
       </div>
     </div>
   );

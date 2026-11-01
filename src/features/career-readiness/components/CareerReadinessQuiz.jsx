@@ -7,6 +7,7 @@ import QuestionCard from "./QuestionCard.jsx";
 import ResultScreen from "./ResultScreen.jsx";
 import { supabase } from "@/lib/supabase";
 import { MembershipProvider } from "@/lib/membership";
+import { track } from "@/Analytics";
 
 /**
  * Self-contained Onboarding Quiz.
@@ -49,6 +50,10 @@ export default function CareerReadinessQuiz({
       setStage("loading");
       try {
         const built = await buildQuizResult(answers);
+        track("quiz_complete", {
+          quiz_id: "career_readiness",
+          score: built.overallScore,
+        });
         setResult(built);
         setStage(isAuthenticated ? "results" : "locked");
 

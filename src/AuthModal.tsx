@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { X, Mail, Lock, User as UserIcon, Loader2, Check } from 'lucide-react';
+import { track } from './Analytics';
 import { supabase } from './lib/supabase';
 import { useAuth } from './lib/auth';
 
@@ -120,6 +121,7 @@ export default function AuthModal({
         setBusy(false);
         return;
       }
+      track('sign_up', { method: 'email' });
       // email confirmation is off; session is created immediately
     } else {
       const { error: err } = await supabase.auth.signInWithPassword({

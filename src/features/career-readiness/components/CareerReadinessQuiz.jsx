@@ -6,6 +6,7 @@ import ProgressBar from "./ProgressBar.jsx";
 import QuestionCard from "./QuestionCard.jsx";
 import ResultScreen from "./ResultScreen.jsx";
 import { supabase } from "@/lib/supabase";
+import { track } from "@/Analytics";
 
 /**
  * Self-contained Career Readiness Assessment.
@@ -51,6 +52,7 @@ export default function CareerReadinessQuiz({
         const built = await buildQuizResult(answers, { useAI });
         setResult(built);
         setStage(isAuthenticated ? "results" : "locked");
+        track("quiz_complete", { quiz_id: "career_readiness" });
 
         if (isAuthenticated && built.categoryScores && !savedRef.current) {
           savedRef.current = true;

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Check, Loader2, Sparkles, Lock } from 'lucide-react';
+import { track } from '@/Analytics';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
 import { useMembership } from '@/lib/membership';
@@ -51,6 +52,7 @@ export default function MembershipPricingPage() {
     if (mode === 'signup') {
       const { error: err } = await supabase.auth.signUp({ email, password });
       if (err) { setAuthError(err.message); setAuthBusy(false); return; }
+      track('sign_up', { method: 'email' });
     } else {
       const { error: err } = await supabase.auth.signInWithPassword({ email, password });
       if (err) { setAuthError(err.message); setAuthBusy(false); return; }

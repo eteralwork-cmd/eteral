@@ -76,14 +76,22 @@ export default function FreeAccessPage() {
     setAuthError(null);
     setAuthBusy(true);
     if (mode === 'signup') {
-      const { error: err } = await supabase.auth.signUp({ email, password });
+      const { data, error: err } = await supabase.auth.signUp({ email, password });
       if (err) { setAuthError(err.message); setAuthBusy(false); return; }
       track('sign_up', { method: 'email' });
+      if (!data.session) {
+        // email confirmation is on: no session until they confirm
+        setAuthError('Check your email to confirm your account, then sign in.');
+        setAuthBusy(false);
+        return;
+      }
     } else {
       const { error: err } = await supabase.auth.signInWithPassword({ email, password });
       if (err) { setAuthError(err.message); setAuthBusy(false); return; }
     }
     setAuthBusy(false);
+    setAuthOpen(false);
+    navigate('/dashboard', { replace: true });
   };
 
   const handleGoogle = async () => {

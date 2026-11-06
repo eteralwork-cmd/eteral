@@ -89,8 +89,9 @@ export function MembershipProvider({ children }: { children: ReactNode }) {
 
   const plan: MembershipPlan = membership?.plan ?? 'free';
   const status: MembershipStatus = membership?.status ?? 'free';
-  const isActive = ACTIVE_STATUSES.includes(status);
-  const isStandard = plan === 'standard' && isActive;
+  // Free access: every signed-in user gets full dashboard access
+  const isActive = !!user;
+  const isStandard = !!user;
 
   return (
     <MembershipContext.Provider value={{ membership, plan, status, isStandard, isActive, loading, refresh }}>

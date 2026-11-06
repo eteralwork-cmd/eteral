@@ -44,7 +44,7 @@ function useDarkMode() {
   return [dark, setDark] as const;
 }
 
-export default function FreeAccessPage() {
+export default function MembershipPricingPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, loading: authLoading } = useAuth();
@@ -57,13 +57,15 @@ export default function FreeAccessPage() {
   const [authError, setAuthError] = useState<string | null>(null);
 
   const fromPath = (location.state as { from?: string })?.from;
+  // After sign in / sign up, go back to where they were headed, else the dashboard.
+  const afterAuthPath = fromPath && fromPath !== '/membership' ? fromPath : '/dashboard';
 
   useEffect(() => {
     if (user) {
       setAuthOpen(false);
-      navigate('/dashboard', { replace: true });
+      navigate(afterAuthPath, { replace: true });
     }
-  }, [user, navigate]);
+  }, [user, navigate, afterAuthPath]);
 
   const openAuth = (m: 'signin' | 'signup') => {
     setMode(m);
@@ -91,7 +93,7 @@ export default function FreeAccessPage() {
     }
     setAuthBusy(false);
     setAuthOpen(false);
-    navigate('/dashboard', { replace: true });
+    navigate(afterAuthPath, { replace: true });
   };
 
   const handleGoogle = async () => {
@@ -99,7 +101,7 @@ export default function FreeAccessPage() {
     setAuthBusy(true);
     const { error: err } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/dashboard` },
+      options: { redirectTo: `${window.location.origin}${afterAuthPath}` },
     });
     if (err) { setAuthError(err.message); setAuthBusy(false); }
   };
